@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Date Invitation 💌</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #FFB3C6;
+      --pink-light: #FFE5EC;
+      --rose: #FF4D6D;
+      --cream: #FAF9F6;
+      --mint: #EEF7F4;
+      --text: #3d2a32;
+      --text-muted: #8a6a72;
+      --gray: #9ca3af;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: "Poppins", sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      overflow-x: hidden;
+      transition: background 0.6s ease;
+    }
+
+    body.romantic {
+      background: linear-gradient(160deg, #fff5f8 0%, #ffe8ef 45%, #ffd6e3 100%);
+      background-size: 300% 300%;
+      animation: bgShift 12s ease infinite;
+    }
+
+    @keyframes bgShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ambient span {
+      position: absolute;
+      bottom: -30px;
+      font-size: 18px;
+      opacity: 0.35;
+      animation: driftUp linear infinite;
+    }
+
+    @keyframes driftUp {
+      to { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+
+    #burstCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    .app {
+      position: relative;
+      z-index: 10;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+    }
+
+    .step {
+      display: none;
+      width: min(94%, 440px);
+      animation: stepIn 0.55s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .step.active { display: block; }
+
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 28px 24px 32px;
+      box-shadow: 0 20px 60px rgba(255, 77, 109, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+      text-align: center;
+    }
+
+    .card-mint {
+      background: var(--mint);
+      border-radius: 22px;
+      padding: 26px 22px 28px;
+      box-shadow: 0 16px 40px rgba(80, 120, 100, 0.12);
+      border-top: 3px solid #f4a5a5;
+      text-align: center;
+    }
+
+    .step-kicker {
+      font-family: "Caveat", cursive;
+      font-size: 15px;
+      color: rgba(61, 42, 50, 0.55);
+      margin-bottom: 4px;
+    }
+
+    .card-mint .hand-title {
+      color: var(--text);
+      font-size: clamp(26px, 6.5vw, 34px);
+    }
+
+    .card-mint input,
+    .card-mint textarea {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(255, 150, 170, 0.35);
+    }
+
+    .card-mint .chip {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(255, 150, 170, 0.35);
+    }
+
+    .special-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 16px;
+    }
+
+    .hand-title {
+      font-family: "Caveat", cursive;
+      font-size: clamp(28px, 7vw, 36px);
+      font-weight: 700;
+      color: var(--rose);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .subtext {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    /* ── Step 0: Envelope ── */
+    .intro-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #8b5a62;
+      margin-bottom: 36px;
+    }
+
+    .intro-label::before,
+    .intro-label::after {
+      content: "—";
+      margin: 0 10px;
+      opacity: 0.5;
+    }
+
+    .envelope-wrap {
+      cursor: pointer;
+      margin: 0 auto 28px;
+      width: fit-content;
+    }
+
+    .flat-envelope {
+      width: min(220px, 62vw);
+      height: min(130px, 36vw);
+      background: #fce4ec;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: envFloat 3s ease-in-out infinite;
+      box-shadow: 0 12px 32px rgba(255, 77, 109, 0.18);
+    }
+
+    .tap-hint {
+      text-align: center;
+    }
+
+    .tap-hint p:first-child {
+      font-size: 13px;
+      color: #7a5a62;
+      margin-bottom: 6px;
+    }
+
+    .tap-hint p:last-child {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--rose);
+    }
+
+    .envelope {
+      width: min(260px, 70vw);
+      height: min(175px, 46vw);
+      position: relative;
+      animation: envFloat 3s ease-in-out infinite;
+      display: none;
+    }
+
+    @keyframes envFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .env-body {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #ffc9d9, #ff9ebb);
+      border-radius: 8px;
+      box-shadow: 0 18px 45px rgba(255, 77, 109, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .env-flap {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 55%;
+      background: linear-gradient(180deg, #ff6b9d, var(--rose));
+      clip-path: polygon(0 0, 50% 75%, 100% 0);
+      transform-origin: top center;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 2;
+    }
+
+    .envelope-wrap.open .env-flap { transform: rotateX(180deg); }
+
+    .heart-btn {
+      position: relative;
+      width: 52px; height: 52px;
+      background: var(--rose);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255, 77, 109, 0.35);
+      z-index: 3;
+      animation: heartPulse 1.4s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .heart-btn .lucide { width: 24px; height: 24px; fill: #fff; }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .intro-msg {
+      font-family: "Caveat", cursive;
+      font-size: 22px;
+      color: var(--text);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      margin-top: 16px;
+    }
+
+    .intro-msg.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Step 1: Invitation ── */
+    .avatar {
+      width: 110px; height: 110px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: none;
+      box-shadow: 0 10px 28px rgba(255, 77, 109, 0.2);
+      margin: 0 auto 18px;
+      display: block;
+      background: var(--pink-light);
+    }
+
+    .avatar-placeholder {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      border: 4px solid var(--pink);
+      background: linear-gradient(135deg, var(--pink-light), var(--pink));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      margin: 0 auto 18px;
+      box-shadow: 0 8px 24px rgba(255, 77, 109, 0.25);
+    }
+
+    .btn-area {
+      position: relative;
+      height: 120px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      padding: 13px 32px;
+      border-radius: 50px;
+      border: none;
+      font-family: "Poppins", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-yes {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--rose), #ff85a8);
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(255, 77, 109, 0.45);
+      padding: 14px 40px;
+      font-size: 16px;
+    }
+
+    .btn-yes:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 16px 36px rgba(255, 77, 109, 0.55);
+    }
+
+    .btn-no {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--gray);
+      font-size: 13px;
+      padding: 10px 22px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: left 0.15s ease, top 0.15s ease;
+    }
+
+    /* ── Step 2: Date/Time ── */
+    .field-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="date"],
+    input[type="time"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid rgba(255, 179, 198, 0.6);
+      border-radius: 14px;
+      font-family: "Poppins", sans-serif;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--rose);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 9px 16px;
+      border-radius: 50px;
+      border: 1.5px solid rgba(255, 179, 198, 0.5);
+      background: rgba(255, 255, 255, 0.85);
+      font-family: "Poppins", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover { border-color: var(--pink); }
+
+    .chip.active {
+      background: linear-gradient(135deg, var(--rose), #ff85a8);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 6px 18px rgba(255, 77, 109, 0.35);
+    }
+
+    /* ── Step 3: Activities ── */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 380px) {
+      .activity-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .activity-card {
+      padding: 12px 6px;
+      border-radius: 14px;
+      border: none;
+      background: rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .activity-card .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      color: var(--rose);
+    }
+
+    .activity-card .icon .lucide { width: 22px; height: 22px; }
+
+    .activity-card:hover { border-color: var(--pink); transform: translateY(-2px); }
+
+    .activity-card.active {
+      border-color: var(--rose);
+      border-width: 2px;
+      background: var(--pink-light);
+      box-shadow: 0 6px 18px rgba(255, 77, 109, 0.2);
+    }
+
+    /* ── Buttons ── */
+    .btn-continue {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--rose), #ff85a8);
+      color: #fff;
+      font-family: "Poppins", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(255, 77, 109, 0.4);
+      transition: transform 0.2s ease;
+    }
+
+    .btn-continue:hover { transform: translateY(-2px); }
+    .btn-continue:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Step 6: Ticket ── */
+    .celebrate {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .celebrate h2 {
+      font-family: "Caveat", cursive;
+      font-size: clamp(30px, 8vw, 38px);
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .celebrate p {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rose);
+      font-weight: 600;
+    }
+
+    .ticket-wrap { padding: 4px; background: transparent; box-shadow: none; }
+
+    .ticket {
+      background: var(--mint);
+      border: none;
+      border-radius: 20px;
+      padding: 22px 20px 20px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      border-top: 3px solid #f4a5a5;
+    }
+
+    .ticket-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .ticket-top span {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(61, 42, 50, 0.45);
+      font-weight: 600;
+    }
+
+    .ticket-heart-ring {
+      width: 36px; height: 36px;
+      border: 1.5px dashed rgba(255, 77, 109, 0.45);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--rose);
+    }
+
+    .ticket-heart-ring .lucide { width: 16px; height: 16px; fill: var(--rose); }
+
+    .ticket-title {
+      font-family: "Caveat", cursive;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 18px;
+      line-height: 1;
+    }
+
+    .ticket-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .ticket-row .row-icon {
+      width: 28px;
+      flex-shrink: 0;
+      color: var(--rose);
+      margin-top: 2px;
+    }
+
+    .ticket-row .row-icon .lucide { width: 18px; height: 18px; }
+
+    .ticket-row strong {
+      display: block;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(61, 42, 50, 0.45);
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .ticket-row span {
+      font-family: "Caveat", cursive;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ticket-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      border-radius: 50px;
+      border: 1.5px solid rgba(255, 77, 109, 0.4);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--rose);
+      font-family: "Poppins", sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--pink-light);
+    }
+
+    .btn-zalo { border-color: #0068ff; color: #0068ff; }
+    .btn-zalo:hover { background: rgba(0, 104, 255, 0.08); }
+
+    .btn-wa { border-color: #25d366; color: #128c3e; }
+    .btn-wa:hover { background: rgba(37, 211, 102, 0.08); }
+  </style>
+</head>
+<body>
+
+  <div class="ambient" id="ambient"></div>
+  <canvas id="burstCanvas"></canvas>
+
+  <div class="app">
+
+    <!-- Step 0: Intro -->
+    <section class="step active" id="step0">
+      <div class="card" style="background: transparent; box-shadow: none; padding-top: 40px;">
+        <p class="intro-label" id="introLabel">Personal Invitation For …</p>
+        <div class="envelope-wrap" id="envelopeWrap">
+          <div class="flat-envelope">
+            <button class="heart-btn" id="heartBtn" aria-label="Mở thiệp"><i data-lucide="heart"></i></button>
+          </div>
+        </div>
+        <div class="tap-hint">
+          <p>Something special awaits you</p>
+          <p>Tap to open ✨</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 1: Main Invitation -->
+    <section class="step" id="step1">
+      <div class="card">
+        <p class="special-label">Special Invitation</p>
+        <img class="avatar" id="avatarEl" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=220&h=220&fit=crop" alt="" />
+        <h1 class="hand-title">Would You Like To Go Out With Me?</h1>
+        <p class="subtext" id="fromSubtext">from …</p>
+        <div class="btn-area" id="btnArea">
+          <button class="btn btn-yes" id="yesBtn">Yes 💖</button>
+          <button class="btn btn-no" id="noBtn">No 🙈</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: Date & Time -->
+    <section class="step" id="step2">
+      <div class="card-mint">
+        <p class="step-kicker">lịch hẹn</p>
+        <h2 class="hand-title">Em rảnh khi nào?</h2>
+        <div class="field-group">
+          <label class="field-label" for="dateInput"><i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px"></i> Chọn ngày</label>
+          <input type="date" id="dateInput" />
+        </div>
+        <div class="field-group">
+          <span class="field-label">Chọn buổi</span>
+          <div class="chip-row" id="sessionChips">
+            <button type="button" class="chip" data-session="Sáng">Sáng</button>
+            <button type="button" class="chip" data-session="Trưa">Trưa</button>
+            <button type="button" class="chip" data-session="Chiều">Chiều</button>
+            <button type="button" class="chip" data-session="Tối">Tối</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="timeInput"><i data-lucide="clock" style="width:14px;height:14px;vertical-align:-2px"></i> Giờ cụ thể</label>
+          <input type="time" id="timeInput" value="18:00" />
+        </div>
+        <button class="btn-continue" id="step2Next">Tiếp tục →</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Activities -->
+    <section class="step" id="step3">
+      <div class="card-mint">
+        <p class="step-kicker">kế hoạch của mình</p>
+        <h2 class="hand-title">Tụi mình sẽ làm gì nhỉ?</h2>
+        <div class="activity-grid" id="activityGrid"></div>
+        <div class="field-group">
+          <input type="text" id="customActivity" placeholder="Hoặc viết ý tưởng của em..." />
+        </div>
+        <button class="btn-continue" id="step3Next">Tiếp tục →</button>
+      </div>
+    </section>
+
+    <!-- Step 4: Dress Code -->
+    <section class="step" id="step4">
+      <div class="card-mint">
+        <p class="step-kicker">cho thêm phần chuyên nghiệp</p>
+        <h2 class="hand-title">Dress code nhé?</h2>
+        <div class="chip-row" id="dressChips" style="justify-content: center; margin-bottom: 16px;"></div>
+        <div class="field-group">
+          <input type="text" id="customDress" placeholder="Hoặc ghi ý tưởng riêng..." />
+        </div>
+        <button class="btn-continue" id="step4Next">Tiếp tục →</button>
+      </div>
+    </section>
+
+    <!-- Step 5: Message -->
+    <section class="step" id="step5">
+      <div class="card-mint">
+        <p class="step-kicker">cuối cùng</p>
+        <h2 class="hand-title" id="messageTitle">Em có lời nhắn gì cho anh không?</h2>
+        <div class="field-group">
+          <textarea id="messageInput" placeholder="Ví dụ: đừng đến trễ nữa nhé!!"></textarea>
+        </div>
+        <button class="btn-continue" id="step5Next">Tạo vé ngay ✨</button>
+      </div>
+    </section>
+
+    <!-- Step 6: Ticket -->
+    <section class="step" id="step6">
+      <div class="celebrate">
+        <h2>Yeay, it's a date!</h2>
+        <p>Lưu vé của em ở dưới</p>
+      </div>
+      <div class="ticket-wrap">
+        <div class="ticket" id="ticketEl">
+          <div class="ticket-top">
+            <span>Admit Two</span>
+            <div class="ticket-heart-ring"><i data-lucide="heart"></i></div>
+          </div>
+          <h3 class="ticket-title">Date Invitation</h3>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="user"></i></div>
+            <div><strong>Dành cho</strong><span id="tFor"></span></div>
+          </div>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="calendar"></i></div>
+            <div><strong>Thời gian</strong><span id="tWhen"></span></div>
+          </div>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="sparkles"></i></div>
+            <div><strong>Hoạt động</strong><span id="tActivities"></span></div>
+          </div>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="shirt"></i></div>
+            <div><strong>Dress code</strong><span id="tDress"></span></div>
+          </div>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="message-circle"></i></div>
+            <div><strong>Lời nhắn từ em</strong><span id="tHerMsg"></span></div>
+          </div>
+          <div class="ticket-row">
+            <div class="row-icon"><i data-lucide="heart"></i></div>
+            <div><strong>Lời nhắn từ anh</strong><span id="tHisMsg"></span></div>
+          </div>
+        </div>
+        <div class="ticket-actions">
+          <button class="btn-continue" id="downloadBtn"><i data-lucide="download" style="width:16px;height:16px;vertical-align:-3px"></i> Tải vé về máy</button>
+          <button class="btn-secondary btn-zalo" id="zaloBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Gửi qua Zalo</button>
+          <button class="btn-secondary btn-wa" id="waBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Gửi qua WhatsApp</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    /* ── Config ── */
+    const CONFIG = {
+      tenNam: "Vũ Hiếu",
+      tenNu: "Hồng Tâm",
+      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=220&h=220&fit=crop",
+      zaloPhone: "84901234567",
+      waPhone: "84901234567",
+      loiNhanAnh: "Đừng quên ăn mặc thật xinh đẹp nhé baby!"
+    };
+
+    const ACTIVITIES = [
+      { icon: "cup-soda", label: "Mixue" },
+      { icon: "clapperboard", label: "Xem phim" },
+      { icon: "footprints", label: "Đi dạo" },
+      { icon: "gamepad-2", label: "Timezone" },
+      { icon: "shopping-bag", label: "Mua sắm" },
+      { icon: "coffee", label: "Cà phê" },
+      { icon: "palette", label: "Painting" },
+      { icon: "camera", label: "Photobooth" }
+    ];
+
+    const DRESS_OPTIONS = ["Casual", "Rock & Roll", "Skena", "Formal", "Bebas"];
+
+    const state = {
+      step: 0,
+      date: "",
+      session: "",
+      time: "18:00",
+      activities: [],
+      customActivity: "",
+      dress: "",
+      customDress: "",
+      message: ""
+    };
+
+    /* ── Ambient ── */
+    const ambientEl = document.getElementById("ambient");
+    ["💗", "🌸", "✨", "💖", "🌷"].forEach((e, i) => {
+      for (let j = 0; j < 4; j++) {
+        const s = document.createElement("span");
+        s.textContent = e;
+        s.style.left = Math.random() * 100 + "%";
+        s.style.animationDuration = (7 + Math.random() * 6) + "s";
+        s.style.animationDelay = (i * 1.2 + j * 0.8) + "s";
+        ambientEl.appendChild(s);
+      }
+    });
+
+    /* ── Init labels ── */
+    document.getElementById("introLabel").textContent =
+      `Personal Invitation For ${CONFIG.tenNu}`;
+    document.getElementById("fromSubtext").textContent =
+      `from ${CONFIG.tenNam}`;
+    document.getElementById("tHisMsg").textContent = CONFIG.loiNhanAnh;
+    document.getElementById("messageTitle").textContent =
+      `Em có lời nhắn gì cho ${CONFIG.tenNam} không?`;
+
+    const avatarEl = document.getElementById("avatarEl");
+    if (CONFIG.avatarUrl) {
+      avatarEl.src = CONFIG.avatarUrl;
+      avatarEl.alt = CONFIG.tenNu;
+    }
+
+    /* ── Build activity grid ── */
+    const activityGrid = document.getElementById("activityGrid");
+    ACTIVITIES.forEach((a) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "activity-card";
+      card.dataset.label = a.label;
+      card.innerHTML = `<span class="icon"><i data-lucide="${a.icon}"></i></span>${a.label}`;
+      card.addEventListener("click", () => {
+        card.classList.toggle("active");
+        const label = card.dataset.label;
+        const idx = state.activities.indexOf(label);
+        if (idx >= 0) state.activities.splice(idx, 1);
+        else state.activities.push(label);
+      });
+      activityGrid.appendChild(card);
+    });
+
+    /* ── Build dress chips ── */
+    const dressChips = document.getElementById("dressChips");
+    DRESS_OPTIONS.forEach((d) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = d;
+      chip.addEventListener("click", () => {
+        dressChips.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        state.dress = d;
+      });
+      dressChips.appendChild(chip);
+    });
+
+    /* ── Session chips ── */
+    document.querySelectorAll("#sessionChips .chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("#sessionChips .chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        state.session = chip.dataset.session;
+      });
+    });
+
+    /* ── Step navigation ── */
+    function goToStep(n) {
+      document.querySelectorAll(".step").forEach((s) => s.classList.remove("active"));
+      document.getElementById("step" + n).classList.add("active");
+      state.step = n;
+      document.body.classList.toggle("romantic", n > 0);
+      if (typeof lucide !== "undefined") lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ── Heart burst canvas ── */
+    const canvas = document.getElementById("burstCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    let bursting = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const BURST_COLORS = ["#ff6b9d", "#ff85a8", "#ffb3c9", "#ff4d6d", "#ffd166", "#fff"];
+
+    function spawnBurst(x, y, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 10;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          size: 6 + Math.random() * 12,
+          color: BURST_COLORS[Math.floor(Math.random() * BURST_COLORS.length)],
+          life: 1,
+          emoji: Math.random() > 0.5 ? "💖" : "🌸",
+          type: Math.random() > 0.4 ? "emoji" : "circle"
+        });
+      }
+    }
+
+    function drawBurst() {
+      if (!bursting && particles.length === 0) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles = particles.filter((p) => {
+        p.vy += 0.15;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.012;
+
+        if (p.life <= 0) return false;
+
+        ctx.globalAlpha = p.life;
+        if (p.type === "emoji") {
+          ctx.font = p.size + "px serif";
+          ctx.fillText(p.emoji, p.x, p.y);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        }
+        return true;
+      });
+
+      ctx.globalAlpha = 1;
+      if (particles.length > 0 || bursting) requestAnimationFrame(drawBurst);
+    }
+
+    /* ── Step 0: Intro ── */
+    const envelopeWrap = document.getElementById("envelopeWrap");
+    const heartBtn = document.getElementById("heartBtn");
+    let introOpened = false;
+
+    function openIntro() {
+      if (introOpened) return;
+      introOpened = true;
+
+      const rect = heartBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      bursting = true;
+      spawnBurst(cx, cy, 70);
+      drawBurst();
+
+      setTimeout(() => {
+        bursting = false;
+        document.body.classList.add("romantic");
+        goToStep(1);
+      }, 1200);
+    }
+
+    heartBtn.addEventListener("click", (e) => { e.stopPropagation(); openIntro(); });
+    envelopeWrap.addEventListener("click", openIntro);
+
+    /* ── Step 1: No dodge ── */
+    const noBtn = document.getElementById("noBtn");
+    const btnArea = document.getElementById("btnArea");
+
+    function dodgeNo() {
+      const area = btnArea.getBoundingClientRect();
+      const btn = noBtn.getBoundingClientRect();
+      const maxX = area.width - btn.width - 4;
+      const maxY = area.height - btn.height - 4;
+      noBtn.style.left = Math.max(0, Math.random() * maxX) + "px";
+      noBtn.style.top = Math.max(0, Math.random() * maxY) + "px";
+    }
+
+    noBtn.addEventListener("mouseenter", dodgeNo);
+    noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); dodgeNo(); }, { passive: false });
+
+    document.getElementById("yesBtn").addEventListener("click", () => goToStep(2));
+
+    /* ── Step 2 ── */
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById("dateInput").value = tomorrow.toISOString().split("T")[0];
+    document.getElementById("dateInput").min = new Date().toISOString().split("T")[0];
+
+    document.getElementById("step2Next").addEventListener("click", () => {
+      state.date = document.getElementById("dateInput").value;
+      state.time = document.getElementById("timeInput").value;
+      if (!state.date) { alert("Em chọn ngày nhé! 📅"); return; }
+      if (!state.session) { alert("Em chọn buổi nhé! ☀️"); return; }
+      goToStep(3);
+    });
+
+    /* ── Step 3 ── */
+    document.getElementById("step3Next").addEventListener("click", () => {
+      state.customActivity = document.getElementById("customActivity").value.trim();
+      if (state.customActivity) state.activities.push(state.customActivity);
+      if (state.activities.length === 0) { alert("Chọn ít nhất một hoạt động nhé! 🎉"); return; }
+      goToStep(4);
+    });
+
+    /* ── Step 4 ── */
+    document.getElementById("step4Next").addEventListener("click", () => {
+      state.customDress = document.getElementById("customDress").value.trim();
+      if (state.customDress) state.dress = state.customDress;
+      if (!state.dress) { alert("Chọn dress code nhé! 👗"); return; }
+      goToStep(5);
+    });
+
+    /* ── Step 5 ── */
+    document.getElementById("step5Next").addEventListener("click", () => {
+      state.message = document.getElementById("messageInput").value.trim();
+      renderTicket();
+      goToStep(6);
+      fireConfetti();
+    });
+
+    /* ── Format helpers ── */
+    function formatDate(iso) {
+      if (!iso) return "";
+      const d = new Date(iso + "T12:00:00");
+      const days = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
+      const months = ["tháng 1", "tháng 2", "tháng 3", "tháng 4", "tháng 5", "tháng 6",
+        "tháng 7", "tháng 8", "tháng 9", "tháng 10", "tháng 11", "tháng 12"];
+      return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function renderTicket() {
+      document.getElementById("tFor").textContent = CONFIG.tenNu;
+      document.getElementById("tWhen").textContent =
+        `${formatDate(state.date)} · ${state.session} · ${state.time}`;
+      document.getElementById("tActivities").textContent = state.activities.join(", ");
+      document.getElementById("tDress").textContent = state.dress;
+      document.getElementById("tHerMsg").textContent = state.message || "(Không có lời nhắn)";
+    }
+
+    function buildShareText() {
+      return [
+        `💌 DATE INVITATION`,
+        ``,
+        `Dành cho: ${CONFIG.tenNu}`,
+        `Thời gian: ${formatDate(state.date)} · ${state.session} · ${state.time}`,
+        `Hoạt động: ${state.activities.join(", ")}`,
+        `Dress code: ${state.dress}`,
+        `Lời nhắn từ em: ${state.message || "(Không có)"}`,
+        `Lời nhắn từ anh: ${CONFIG.loiNhanAnh}`,
+        ``,
+        `— ${CONFIG.tenNam} 💕`
+      ].join("\n");
+    }
+
+    /* ── Confetti ── */
+    function fireConfetti() {
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.7 },
+          colors: ["#FF4D6D", "#FFB3C6", "#FFE5EC", "#ff85a8"]
+        });
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.7 },
+          colors: ["#FF4D6D", "#FFB3C6", "#FFE5EC", "#ff85a8"]
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 120,
+          spread: 100,
+          origin: { y: 0.6 },
+          shapes: ["circle"],
+          colors: ["#FF4D6D", "#FFB3C6", "#ff85a8"]
+        });
+      }, 400);
+    }
+
+    /* ── Download ticket ── */
+    document.getElementById("downloadBtn").addEventListener("click", async () => {
+      const ticket = document.getElementById("ticketEl");
+      const btn = document.getElementById("downloadBtn");
+      btn.disabled = true;
+      btn.textContent = "Đang tạo ảnh...";
+
+      try {
+        const shot = await html2canvas(ticket, {
+          scale: 2,
+          backgroundColor: "#FFF5F7",
+          useCORS: true
+        });
+        const link = document.createElement("a");
+        link.download = `date-ticket-${CONFIG.tenNu.replace(/\s/g, "-")}.png`;
+        link.href = shot.toDataURL("image/png");
+        link.click();
+      } catch {
+        alert("Không tải được vé, thử lại nhé!");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "📥 Tải vé về máy";
+    });
+
+    /* ── Share ── */
+    document.getElementById("zaloBtn").addEventListener("click", () => {
+      const text = encodeURIComponent(buildShareText());
+      window.open(`https://zalo.me/${CONFIG.zaloPhone}?text=${text}`, "_blank");
+    });
+
+    document.getElementById("waBtn").addEventListener("click", () => {
+      const text = encodeURIComponent(buildShareText());
+      window.open(`https://wa.me/${CONFIG.waPhone}?text=${text}`, "_blank");
+    });
+
+    if (typeof lucide !== "undefined") lucide.createIcons();
+  </script>
+</body>
+</html>
+git init

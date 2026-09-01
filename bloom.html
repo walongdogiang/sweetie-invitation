@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bloom 🌸</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #ff6b9d;
+      --pink-light: #ffb3c9;
+      --pink-pale: #fff0f5;
+      --rose: #ff4d6d;
+      --cream: #fffaf7;
+      --text: #5c2a3a;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Quicksand", sans-serif;
+      background: linear-gradient(135deg, #fff9fb 0%, #fff0f5 30%, #ffe8ef 60%, #ffdee8 100%);
+      background-size: 300% 300%;
+      animation: bgShift 10s ease infinite;
+      overflow: hidden;
+      position: relative;
+    }
+
+    @keyframes bgShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Ambient floating flowers */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ambient span {
+      position: absolute;
+      bottom: -40px;
+      font-size: 22px;
+      opacity: 0.45;
+      animation: driftUp linear infinite;
+    }
+
+    @keyframes driftUp {
+      to { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Canvas overlay for flower burst */
+    #flowerCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Main wrapper */
+    .stage {
+      position: relative;
+      z-index: 10;
+      width: min(98%, 560px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      min-height: min(90vh, 600px);
+    }
+
+    .tagline {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #7a3a4f;
+      margin-bottom: 22px;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .tagline::before,
+    .tagline::after {
+      content: "—";
+      margin: 0 8px;
+      opacity: 0.7;
+      color: #9e4d66;
+    }
+
+    /* Envelope */
+    .envelope-wrap {
+      cursor: pointer;
+      transition: transform 0.4s ease, opacity 0.5s ease;
+    }
+
+    .envelope-wrap.hidden {
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    .envelope {
+      width: min(280px, 72vw);
+      height: min(190px, 48vw);
+      position: relative;
+      animation: envFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes envFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .env-body {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #ffc9d9, #ff9ebb);
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(255, 77, 109, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .env-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 55%;
+      background: linear-gradient(180deg, #ff6b9d, #ff4d6d);
+      clip-path: polygon(0 0, 50% 75%, 100% 0);
+      transform-origin: top center;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 2;
+    }
+
+    .envelope-wrap.open .env-flap {
+      transform: rotateX(180deg);
+    }
+
+    .env-heart {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 52px;
+      height: 52px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 16px rgba(255, 77, 109, 0.3);
+      z-index: 1;
+      animation: heartPulse 1.5s ease infinite;
+    }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    .tap-hint {
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .tap-hint p:first-child {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b3045;
+      margin-bottom: 8px;
+    }
+
+    .tap-hint p:last-child {
+      font-size: 17px;
+      font-weight: 700;
+      color: #d91a52;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+      animation: tapBlink 2.5s ease infinite;
+    }
+
+    @keyframes tapBlink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+
+    /* Letter */
+    .letter-wrap {
+      opacity: 0;
+      transform: translateY(30px) scale(0.92);
+      pointer-events: none;
+      transition: opacity 0.6s ease 0.3s, transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s;
+      width: min(98%, 500px);
+      margin: 0 auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+    }
+
+    .letter-wrap.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      position: relative;
+      top: auto;
+      left: auto;
+      translate: none;
+    }
+
+    .letter {
+      background: var(--cream);
+      border-radius: 4px;
+      padding: 18px 20px 22px;
+      box-shadow:
+        0 2px 0 #f5ddd5,
+        0 25px 60px rgba(255, 77, 109, 0.25),
+        inset 0 0 0 1px rgba(255, 182, 193, 0.4);
+      position: relative;
+      text-align: center;
+    }
+
+    .letter::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1.5px dashed rgba(255, 107, 157, 0.25);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Floral heart frame */
+    .floral-heart {
+      position: relative;
+      width: min(340px, 90vw);
+      height: min(275px, 75vw);
+      margin: -10px auto 8px;
+    }
+
+    .floral-heart svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .letter-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 12px 42px;
+    }
+
+    .letter-content .from-label,
+    .letter-content .for-label {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: rgba(92, 42, 58, 0.6);
+    }
+
+    .letter-content .name {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(22px, 6vw, 30px);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+    }
+
+    .letter-content .name.from { margin-bottom: 2px; }
+    .letter-content .name.to { margin-top: 2px; margin-bottom: 8px; }
+
+    .letter-question {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .letter-message {
+      font-family: "Caveat", cursive;
+      font-weight: 700;
+      font-size: clamp(24px, 6vw, 30px);
+      color: var(--rose);
+      line-height: 1.1;
+      margin-bottom: 18px;
+      padding: 0 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .letter-message em {
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 500;
+      font-size: clamp(14px, 3.8vw, 17px);
+      color: var(--rose);
+      font-style: italic;
+      line-height: 1.3;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-yes {
+      width: min(260px, 92%);
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #ff4d6d, #ff85a8, #ffb3c9);
+      background-size: 200% 200%;
+      animation: btnGlow 3s ease infinite;
+      color: #fff;
+      font-family: "Quicksand", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(255, 77, 109, 0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    @keyframes btnGlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .btn-yes:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 18px 40px rgba(255, 77, 109, 0.55);
+    }
+
+    .btn-yes:active { transform: scale(0.96); }
+
+    .btn-yes:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+
+    .letter-footer {
+      margin-top: 14px;
+      font-size: 11px;
+      color: rgba(92, 42, 58, 0.45);
+      font-style: italic;
+    }
+
+    @media (max-width: 480px) {
+      .letter { padding: 14px 16px 20px; }
+      .floral-heart { margin-top: -12px; }
+      .btn-yes { font-size: 14px; padding: 11px 24px; }
+    }
+
+    @media (max-width: 380px) {
+      .letter-message { font-size: clamp(18px, 5vw, 22px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient" id="ambient"></div>
+  <canvas id="flowerCanvas"></canvas>
+
+  <div class="stage">
+    <p class="tagline">Personal Invitation · For You</p>
+
+    <!-- Envelope -->
+    <div class="envelope-wrap" id="envelopeWrap">
+      <div class="envelope">
+        <div class="env-body">
+          <div class="env-flap"></div>
+          <div class="env-heart">💌</div>
+        </div>
+      </div>
+      <div class="tap-hint">
+        <p>Something special awaits you</p>
+        <p>Tap to open ✨</p>
+      </div>
+    </div>
+
+    <!-- Letter -->
+    <div class="letter-wrap" id="letterWrap">
+      <div class="letter" id="letter">
+        <div class="floral-heart">
+          <svg viewBox="0 0 260 260" fill="none">
+            <g id="heartFlowers"></g>
+          </svg>
+          <div class="letter-content">
+            <span class="from-label">Invitation From</span>
+            <span class="name from">Vũ Hiếu</span>
+            <span class="for-label">For</span>
+            <span class="name to">HỒNG TÂM</span>
+          </div>
+        </div>
+
+        <p class="letter-message">
+          <span class="letter-question">Would you like to go out with me?</span>
+          <em>I promise it'll be magical 🌸</em>
+        </p>
+
+        <div class="btn-row" id="btnRow">
+          <button class="btn-yes" id="yesBtn">Yes, I'd love to! 💖</button>
+        </div>
+
+        <p class="letter-footer">Made with love ✨</p>
+      </div>
+    </div>
+  </div>
+
+  <audio id="openSound" src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkle-whoosh-235.mp3" preload="auto"></audio>
+  <audio id="yesSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+
+  <script>
+    /* ── Ambient floating flowers ── */
+    const ambientEl = document.getElementById("ambient");
+    const ambientEmojis = ["🌸", "🌺", "🌷", "💮", "🏵️", "💗", "✨"];
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement("span");
+      s.textContent = ambientEmojis[i % ambientEmojis.length];
+      s.style.left = Math.random() * 100 + "%";
+      s.style.fontSize = (14 + Math.random() * 18) + "px";
+      s.style.animationDuration = (6 + Math.random() * 8) + "s";
+      s.style.animationDelay = (Math.random() * 6) + "s";
+      ambientEl.appendChild(s);
+    }
+
+    /* ── Heart border flowers (parametric heart curve) ── */
+    const heartFlowersG = document.getElementById("heartFlowers");
+    const flowerColors = ["#ff6b9d", "#ffb3c9", "#ffd166", "#ff85a8", "#c9b1ff", "#a8d8ff"];
+    const dotCount = 46;
+    const heartScale = 7.5;
+    const heartCx = 130;
+    const heartCy = 120;
+
+    function heartXY(t) {
+      return {
+        x: 16 * Math.pow(Math.sin(t), 3),
+        y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
+      };
+    }
+
+    const heartSamples = 400;
+    const heartPts = [];
+    const heartLens = [0];
+    for (let i = 0; i <= heartSamples; i++) {
+      const p = heartXY((i / heartSamples) * Math.PI * 2);
+      heartPts.push(p);
+      if (i > 0) {
+        const dx = p.x - heartPts[i - 1].x;
+        const dy = p.y - heartPts[i - 1].y;
+        heartLens.push(heartLens[i - 1] + Math.hypot(dx, dy));
+      }
+    }
+    const heartTotalLen = heartLens[heartLens.length - 1];
+
+    function heartPointAt(dist) {
+      const target = ((dist % heartTotalLen) + heartTotalLen) % heartTotalLen;
+      let idx = 0;
+      while (idx < heartLens.length - 2 && heartLens[idx + 1] < target) idx++;
+      const segLen = heartLens[idx + 1] - heartLens[idx] || 1;
+      const frac = (target - heartLens[idx]) / segLen;
+      const a = heartPts[idx];
+      const b = heartPts[idx + 1];
+      return {
+        x: heartCx + (a.x + (b.x - a.x) * frac) * heartScale,
+        y: heartCy + (a.y + (b.y - a.y) * frac) * heartScale
+      };
+    }
+
+    for (let i = 0; i < dotCount; i++) {
+      const pt = heartPointAt((i / dotCount) * heartTotalLen);
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", pt.x);
+      circle.setAttribute("cy", pt.y);
+      circle.setAttribute("r", 6 + Math.random() * 2);
+      circle.setAttribute("fill", flowerColors[i % flowerColors.length]);
+      circle.setAttribute("opacity", "0.88");
+      heartFlowersG.appendChild(circle);
+    }
+
+    /* ── Open envelope ── */
+    const envelopeWrap = document.getElementById("envelopeWrap");
+    const letterWrap = document.getElementById("letterWrap");
+    const openSound = document.getElementById("openSound");
+
+    envelopeWrap.addEventListener("click", () => {
+      envelopeWrap.classList.add("open");
+      openSound.currentTime = 0;
+      openSound.play().catch(() => {});
+
+      setTimeout(() => {
+        envelopeWrap.classList.add("hidden");
+        letterWrap.classList.add("visible");
+      }, 700);
+    });
+
+    /* ── Flower burst canvas ── */
+    const canvas = document.getElementById("flowerCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    let animating = false;
+    let burstPhase = 0;
+    let fillInterval = null;
+
+    const PETAL_COLORS = [
+      "#ff6b9d", "#ff85a8", "#ffb3c9", "#ffd166",
+      "#ffe066", "#ff9ebb", "#ffc2d4", "#fff", "#c9b1ff", "#a8d8ff"
+    ];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    function drawFlower(x, y, size, color, rotation) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      const petals = 6;
+      for (let i = 0; i < petals; i++) {
+        ctx.save();
+        ctx.rotate((Math.PI * 2 / petals) * i);
+        ctx.beginPath();
+        ctx.ellipse(0, -size * 0.55, size * 0.35, size * 0.55, 0, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffd166";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function spawnBurst(x, y, count, speed) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vel = speed * (0.4 + Math.random() * 0.8);
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * vel,
+          vy: Math.sin(angle) * vel - Math.random() * 2,
+          size: 6 + Math.random() * 14,
+          color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.12,
+          gravity: 0.04 + Math.random() * 0.06,
+          friction: 0.985 + Math.random() * 0.01,
+          life: 1,
+          decay: 0.002 + Math.random() * 0.004,
+          settled: false
+        });
+      }
+    }
+
+    function spawnFill(count) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: -20 - Math.random() * 60,
+          vx: (Math.random() - 0.5) * 3,
+          vy: 1 + Math.random() * 4,
+          size: 8 + Math.random() * 16,
+          color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.08,
+          gravity: 0.06 + Math.random() * 0.05,
+          friction: 0.99,
+          life: 1,
+          decay: 0.001,
+          settled: false
+        });
+      }
+    }
+
+    function animate() {
+      if (!animating) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      burstPhase++;
+
+      for (const p of particles) {
+        if (!p.settled) {
+          p.vy += p.gravity;
+          p.vx *= p.friction;
+          p.vy *= p.friction;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rotation += p.rotSpeed;
+
+          if (p.y > canvas.height - p.size * 0.5) {
+            p.y = canvas.height - p.size * 0.5;
+            p.vy *= -0.2;
+            p.vx *= 0.7;
+            if (Math.abs(p.vy) < 0.5) {
+              p.settled = true;
+              p.vy = 0;
+              p.vx = 0;
+            }
+          }
+        }
+        drawFlower(p.x, p.y, p.size, p.color, p.rotation);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    /* ── Yes button ── */
+    const yesBtn = document.getElementById("yesBtn");
+    const letter = document.getElementById("letter");
+    const yesSound = document.getElementById("yesSound");
+
+    yesBtn.addEventListener("click", () => {
+      if (animating) return;
+      animating = true;
+      yesBtn.disabled = true;
+      yesSound.currentTime = 0;
+      yesSound.play().catch(() => {});
+
+      const rect = letter.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      /* Phase 1: burst from letter center */
+      spawnBurst(cx, cy, 80, 12);
+      animate();
+
+      /* Phase 2: continuous spray from letter */
+      let sprayCount = 0;
+      const sprayInterval = setInterval(() => {
+        spawnBurst(cx, cy, 15, 10);
+        sprayCount++;
+        if (sprayCount > 25) clearInterval(sprayInterval);
+      }, 120);
+
+      /* Phase 3: rain flowers to fill screen */
+      setTimeout(() => {
+        fillInterval = setInterval(() => {
+          spawnFill(12);
+        }, 180);
+      }, 800);
+
+      /* Phase 4: more density */
+      setTimeout(() => {
+        clearInterval(fillInterval);
+        fillInterval = setInterval(() => spawnFill(20), 100);
+      }, 3000);
+
+      setTimeout(() => clearInterval(fillInterval), 7000);
+    });
+  </script>
+</body>
+</html>
