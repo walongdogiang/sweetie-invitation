@@ -149,7 +149,7 @@
         <span class="page-arrow">→</span>
       </a>
 
-      <a class="page-link" href="bloom.html">
+      <a class="page-link" id="bloomLink" href="bloom.html">
         <span class="page-icon">💌</span>
         <span class="page-info">
           <span class="page-name">Anniversary</span>
@@ -170,5 +170,13 @@
 
     <p class="footer">Made with love for Hồng Tâm</p>
   </main>
+  <script>
+    document.getElementById("bloomLink")?.addEventListener("mousedown", () => {
+      localStorage.setItem("bloomMusicUnlock", "1");
+    });
+    document.getElementById("bloomLink")?.addEventListener("touchstart", () => {
+      localStorage.setItem("bloomMusicUnlock", "1");
+    }, { passive: true });
+  </script>
 </body>
 </html>

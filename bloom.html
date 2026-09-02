@@ -10,6 +10,18 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      height: 100%;
+      background: #fff0f5;
+      overscroll-behavior: none;
+    }
+
+    html.step-accepted {
+      background: #1a0c0a;
+      overflow: hidden;
+      transition: background var(--crossfade) ease;
+    }
+
     :root {
       --pink: #ff6b9d;
       --pink-light: #ffb3c9;
@@ -17,21 +29,247 @@
       --rose: #ff4d6d;
       --cream: #fffaf7;
       --text: #5c2a3a;
+      --crossfade: 1.2s;
+      --success-fade: 0.9s;
     }
 
     body {
       min-height: 100vh;
       min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: "Quicksand", sans-serif;
+      background: transparent;
+      overflow: hidden;
+      overscroll-behavior: none;
+      position: relative;
+    }
+
+    body.accepted {
+      overflow: hidden;
+      height: 100dvh;
+    }
+
+    html:has(body.accepted) {
+      overflow: hidden;
+    }
+
+    /* Nền hồng step 2 — chỉ fade khi step 2 → 3 */
+    .step2-sky {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
       background: linear-gradient(135deg, #fff9fb 0%, #fff0f5 30%, #ffe8ef 60%, #ffdee8 100%);
       background-size: 300% 300%;
       animation: bgShift 10s ease infinite;
-      overflow-x: hidden;
-      overflow-y: auto;
-      position: relative;
+      opacity: 1;
+    }
+
+    body.crossfading .step2-sky {
+      opacity: 0;
+      transition: opacity var(--crossfade) ease;
+    }
+
+    body.crossfading .ambient {
+      opacity: 0;
+      transition: opacity var(--crossfade) ease;
+    }
+
+    /* ── Restaurant scene background ── */
+    .restaurant-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--crossfade) ease;
+      overflow: hidden;
+    }
+
+    body.accepted .restaurant-scene {
+      opacity: 1;
+    }
+
+    .restaurant-scene__photo {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg,
+          rgba(15, 5, 5, 0.55) 0%,
+          rgba(30, 10, 8, 0.35) 40%,
+          rgba(10, 5, 5, 0.75) 100%),
+        url("images/dating-bg-1.png") center/cover no-repeat;
+      transform: scale(1.08);
+      animation: slowZoom 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes slowZoom {
+      from { transform: scale(1.08); }
+      to { transform: scale(1.14); }
+    }
+
+    .restaurant-scene__glow {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 60%, rgba(255, 140, 80, 0.25) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(255, 77, 109, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 75%, rgba(255, 180, 100, 0.12) 0%, transparent 60%);
+      animation: candleFlicker 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes candleFlicker {
+      from { opacity: 0.85; }
+      to { opacity: 1; }
+    }
+
+    .restaurant-scene__table {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      translate: -50% 0;
+      width: min(92vw, 520px);
+      height: 38vh;
+      pointer-events: none;
+    }
+
+    .restaurant-scene__table svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .restaurant-scene__snow-dots {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    body.snow-live .restaurant-scene__snow-dots {
+      opacity: 1;
+    }
+
+    .restaurant-scene__petals {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    body.snow-live .restaurant-scene__petals {
+      opacity: 1;
+    }
+
+    .restaurant-scene__snow-ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        linear-gradient(to top,
+          rgba(255, 255, 255, 0.62) 0%,
+          rgba(255, 255, 255, 0.34) 38%,
+          rgba(255, 255, 255, 0.1) 68%,
+          transparent 100%);
+      transition: opacity 1.6s ease;
+    }
+
+    body.snow-live .restaurant-scene__snow-ground {
+      opacity: 1;
+    }
+
+    .restaurant-scene__petals span.snow-flake {
+      position: absolute;
+      top: -28px;
+      color: rgba(255, 255, 255, 0.88);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.65);
+      opacity: 0;
+      animation: snowFlakeFall linear infinite;
+      user-select: none;
+    }
+
+    @keyframes snowFlakeFall {
+      0% {
+        opacity: 0;
+        transform: translateY(-16px) translateX(0) rotate(0deg);
+      }
+      10% { opacity: 0.75; }
+      55% { transform: translateY(52vh) translateX(calc(var(--snow-drift, 12px) * 0.5)) rotate(140deg); }
+      90% { opacity: 0.45; }
+      100% {
+        opacity: 0;
+        transform: translateY(calc(100vh + 28px)) translateX(var(--snow-drift, 12px)) rotate(280deg);
+      }
+    }
+
+    .restaurant-scene__anniversary {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      translate: -50% 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(13px, 3.5vw, 16px);
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255, 220, 200, 0.75);
+      opacity: 0;
+      transition: opacity 1s ease 0.8s;
+      white-space: nowrap;
+    }
+
+    body.accepted .restaurant-scene__anniversary {
+      opacity: 1;
+    }
+
+    /* ── Fireflies (đom đóm) ── */
+    .restaurant-scene__fireflies {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.4s ease;
+    }
+
+    body.fireflies-live .restaurant-scene__fireflies {
+      opacity: 1;
+    }
+
+    .firefly {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      will-change: transform, opacity, left, top;
+      background: radial-gradient(circle, #fffef8 0%, #fff6a0 26%, #ffd030 46%, transparent 66%);
+      box-shadow:
+        0 0 3px 1px rgba(255, 255, 235, 1),
+        0 0 10px 4px rgba(255, 245, 140, 1),
+        0 0 22px 8px rgba(255, 220, 80, 0.9),
+        0 0 38px 14px rgba(255, 195, 50, 0.55),
+        0 0 52px 20px rgba(255, 175, 40, 0.28);
+    }
+
+    .firefly--warm {
+      background: radial-gradient(circle, #fffef5 0%, #ffe860 30%, #ffc820 50%, transparent 66%);
+      box-shadow:
+        0 0 3px 1px rgba(255, 252, 210, 1),
+        0 0 10px 4px rgba(255, 235, 110, 0.95),
+        0 0 20px 7px rgba(255, 205, 70, 0.85),
+        0 0 36px 12px rgba(255, 180, 45, 0.5),
+        0 0 48px 18px rgba(255, 160, 35, 0.25);
     }
 
     @keyframes bgShift {
@@ -113,12 +351,12 @@
     /* Envelope */
     .envelope-wrap {
       cursor: pointer;
-      transition: transform 0.4s ease, opacity 0.5s ease;
+      transition: transform 0.48s ease, opacity 0.48s ease;
     }
 
     .envelope-wrap.hidden {
       opacity: 0;
-      transform: scale(0.8);
+      transform: scale(0.88);
       pointer-events: none;
       position: absolute;
     }
@@ -194,9 +432,9 @@
     /* Letter — mobile-first */
     .letter-wrap {
       opacity: 0;
-      transform: translateY(30px) scale(0.92);
+      transform: translateY(20px) scale(0.95);
       pointer-events: none;
-      transition: opacity 0.6s ease 0.3s, transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s;
+      transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
       width: 100%;
       max-width: 100%;
       min-width: 0;
@@ -215,6 +453,32 @@
       top: auto;
       left: auto;
       translate: none;
+      transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
+    }
+
+    /* Step 2 → 3: ghim vị trí thư, fade mượt không nhảy layout */
+    .letter-wrap.transitioning {
+      position: fixed !important;
+      left: var(--letter-pin-left);
+      top: var(--letter-pin-top);
+      width: var(--letter-pin-width);
+      max-width: var(--letter-pin-width);
+      margin: 0;
+      transform: none !important;
+      translate: none !important;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .letter-wrap.transitioning .letter {
+      opacity: 0;
+      transition: opacity var(--crossfade) ease;
+      pointer-events: none;
+    }
+
+    .letter-wrap.transitioning .letter::before {
+      opacity: 0;
+      transition: opacity var(--crossfade) ease;
     }
 
     .letter {
@@ -387,6 +651,114 @@
       font-style: italic;
     }
 
+    /* ── Success state ── */
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 4px 4px;
+    }
+
+    .letter.accepted .floral-heart,
+    .letter.accepted .letter-message,
+    .letter.accepted .btn-row,
+    .letter.accepted .letter-footer {
+      pointer-events: none;
+    }
+
+    .letter.accepted.transition-done .floral-heart,
+    .letter.accepted.transition-done .letter-message,
+    .letter.accepted.transition-done .btn-row,
+    .letter.accepted.transition-done .letter-footer {
+      display: none;
+    }
+
+    .letter.accepted .success-state {
+      display: none;
+    }
+
+    .letter.accepted.show-success .success-state {
+      display: flex;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(92vw, 480px);
+      max-width: 480px;
+      z-index: 25;
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 14px));
+      pointer-events: none;
+    }
+
+    .letter.accepted.show-success.reveal-success .success-state {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+      transition: opacity var(--success-fade) ease, transform var(--success-fade) ease;
+    }
+
+    .letter.accepted.transition-done {
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .letter.accepted.transition-done::before {
+      display: none;
+    }
+
+    .letter-wrap:has(.letter.accepted) {
+      max-width: min(92vw, 480px);
+    }
+
+    .success-emoji {
+      font-size: 48px;
+      line-height: 1;
+      animation: successPulse 2s ease-in-out infinite;
+      filter: drop-shadow(0 2px 8px rgba(255, 77, 109, 0.5));
+    }
+
+    @keyframes successPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .success-message {
+      font-family: "Caveat", cursive;
+      font-weight: 700;
+      font-size: clamp(28px, 7.5vw, 38px);
+      color: #fff;
+      line-height: 1.25;
+      text-align: center;
+      text-wrap: balance;
+      max-width: 100%;
+      text-shadow:
+        0 0 24px rgba(255, 105, 160, 0.85),
+        0 2px 12px rgba(255, 77, 109, 0.6),
+        0 2px 8px rgba(0, 0, 0, 0.45);
+    }
+
+    .success-sub {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: clamp(16px, 4.2vw, 20px);
+      color: #ffd4e4;
+      text-align: center;
+      text-shadow:
+        0 0 16px rgba(255, 130, 170, 0.7),
+        0 1px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .success-dinner {
+      display: flex;
+      gap: 12px;
+      font-size: 28px;
+      margin-top: 4px;
+      opacity: 0.95;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+    }
+
     /* Desktop / tablet enhancements */
     @media (min-width: 480px) {
       .stage {
@@ -453,6 +825,63 @@
 </head>
 <body>
 
+  <div class="step2-sky" aria-hidden="true"></div>
+
+  <div class="restaurant-scene" id="restaurantScene" aria-hidden="true">
+    <div class="restaurant-scene__photo"></div>
+    <div class="restaurant-scene__glow"></div>
+    <p class="restaurant-scene__anniversary">Happy Anniversary 🥂</p>
+    <div class="restaurant-scene__table" aria-hidden="true">
+      <svg viewBox="0 0 520 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Table cloth -->
+        <ellipse cx="260" cy="170" rx="240" ry="28" fill="rgba(255,245,240,0.15)"/>
+        <!-- Wine glasses -->
+        <g opacity="0.9">
+          <path d="M120 80 Q120 50 135 40 Q150 50 150 80 L145 110 Q140 120 135 120 Q130 120 125 110 Z" fill="rgba(255,220,200,0.5)" stroke="rgba(255,200,180,0.6)" stroke-width="1"/>
+          <rect x="132" y="120" width="6" height="40" rx="2" fill="rgba(255,200,180,0.5)"/>
+          <ellipse cx="135" cy="162" rx="14" ry="4" fill="rgba(255,200,180,0.4)"/>
+          <ellipse cx="135" cy="75" rx="10" ry="5" fill="rgba(180,30,50,0.7)"/>
+          <path d="M370 80 Q370 50 385 40 Q400 50 400 80 L395 110 Q390 120 385 120 Q380 120 375 110 Z" fill="rgba(255,220,200,0.5)" stroke="rgba(255,200,180,0.6)" stroke-width="1"/>
+          <rect x="382" y="120" width="6" height="40" rx="2" fill="rgba(255,200,180,0.5)"/>
+          <ellipse cx="385" cy="162" rx="14" ry="4" fill="rgba(255,200,180,0.4)"/>
+          <ellipse cx="385" cy="75" rx="10" ry="5" fill="rgba(180,30,50,0.7)"/>
+        </g>
+        <!-- Steak plate -->
+        <ellipse cx="260" cy="130" rx="70" ry="12" fill="rgba(255,255,255,0.12)"/>
+        <ellipse cx="260" cy="125" rx="55" ry="38" fill="#5c3020"/>
+        <ellipse cx="260" cy="118" rx="48" ry="30" fill="#7a4030"/>
+        <ellipse cx="245" cy="110" rx="18" ry="10" fill="#9a5540" opacity="0.7"/>
+        <ellipse cx="275" cy="115" rx="14" ry="8" fill="#8a4535" opacity="0.6"/>
+        <!-- Grill marks -->
+        <line x1="230" y1="108" x2="290" y2="108" stroke="#3a1a10" stroke-width="2" opacity="0.5"/>
+        <line x1="228" y1="118" x2="292" y2="118" stroke="#3a1a10" stroke-width="2" opacity="0.5"/>
+        <line x1="230" y1="128" x2="290" y2="128" stroke="#3a1a10" stroke-width="2" opacity="0.5"/>
+        <!-- Side garnish -->
+        <circle cx="210" cy="120" r="8" fill="#4a7a3a" opacity="0.8"/>
+        <circle cx="310" cy="118" r="7" fill="#c0392b" opacity="0.7"/>
+        <!-- Flower vase -->
+        <rect x="248" y="55" width="24" height="35" rx="4" fill="rgba(255,200,210,0.35)"/>
+        <circle cx="255" cy="48" r="10" fill="#ff6b9d" opacity="0.85"/>
+        <circle cx="268" cy="44" r="9" fill="#ffb3c9" opacity="0.85"/>
+        <circle cx="262" cy="52" r="8" fill="#ff85a8" opacity="0.85"/>
+        <circle cx="250" cy="42" r="7" fill="#ffd166" opacity="0.8"/>
+        <!-- Candles -->
+        <rect x="195" y="60" width="6" height="30" rx="2" fill="#fff8e8"/>
+        <ellipse cx="198" cy="58" rx="5" ry="7" fill="#ffd166" opacity="0.9">
+          <animate attributeName="ry" values="7;9;6;8;7" dur="1.5s" repeatCount="indefinite"/>
+        </ellipse>
+        <rect x="319" y="60" width="6" height="30" rx="2" fill="#fff8e8"/>
+        <ellipse cx="322" cy="58" rx="5" ry="7" fill="#ffd166" opacity="0.9">
+          <animate attributeName="ry" values="8;6;9;7;8" dur="1.8s" repeatCount="indefinite"/>
+        </ellipse>
+      </svg>
+    </div>
+    <div class="restaurant-scene__snow-ground" id="snowGround" aria-hidden="true"></div>
+    <canvas class="restaurant-scene__snow-dots" id="snowCanvas" aria-hidden="true"></canvas>
+    <div class="restaurant-scene__petals" id="scenePetals"></div>
+    <div class="restaurant-scene__fireflies" id="fireflies" aria-hidden="true"></div>
+  </div>
+
   <div class="ambient" id="ambient"></div>
   <canvas id="burstCanvas"></canvas>
   <canvas id="flowerCanvas"></canvas>
@@ -499,13 +928,58 @@
           <button class="btn-yes" id="yesBtn">Yes, I'd love to! 💖</button>
         </div>
 
+        <div class="success-state" id="successState">
+          <span class="success-emoji">💕</span>
+          <p class="success-message">Yay! Can't wait to see you this afternoon, my love! 💕</p>
+          <p class="success-sub">See you at our special anniversary dinner</p>
+          <div class="success-dinner" aria-hidden="true">🥩🍷🌹🕯️</div>
+        </div>
+
         <p class="letter-footer">Made with love ✨</p>
       </div>
     </div>
   </div>
 
-  <audio id="openSound" src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkle-whoosh-235.mp3" preload="auto"></audio>
-  <audio id="yesSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+  <audio id="bgMusic" src="mp3/bloom-music.mp3" loop autoplay preload="auto" playsinline></audio>
+  <script>
+    (function () {
+      var UNLOCK_KEY = "bloomMusicUnlock";
+      var bg = document.getElementById("bgMusic");
+      if (!bg) return;
+      bg.volume = 0.4;
+      if (sessionStorage.getItem(UNLOCK_KEY) === "1") {
+        localStorage.setItem(UNLOCK_KEY, "1");
+      }
+
+      function playBgMusic() {
+        if (localStorage.getItem(UNLOCK_KEY) === "1") bg.muted = false;
+        bg.play().then(function () {
+          if (!bg.muted) localStorage.setItem(UNLOCK_KEY, "1");
+        }).catch(function () {
+          bg.muted = true;
+          bg.play().catch(function () {});
+        });
+      }
+
+      window.bloomPlayMusic = playBgMusic;
+      playBgMusic();
+      bg.addEventListener("canplay", playBgMusic, { once: true });
+      document.addEventListener("DOMContentLoaded", playBgMusic);
+      window.addEventListener("pageshow", playBgMusic);
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) playBgMusic();
+      });
+      ["pointerdown", "click", "touchstart", "keydown"].forEach(function (evt) {
+        document.addEventListener(evt, function () {
+          if (!bg.muted) return;
+          bg.muted = false;
+          bg.play().then(function () {
+            localStorage.setItem(UNLOCK_KEY, "1");
+          }).catch(function () {});
+        }, { passive: true });
+      });
+    })();
+  </script>
 
   <script>
     /* ── Ambient floating flowers ── */
@@ -640,15 +1114,10 @@
     const envelopeWrap = document.getElementById("envelopeWrap");
     const heartBtn = document.getElementById("heartBtn");
     const letterWrap = document.getElementById("letterWrap");
-    const openSound = document.getElementById("openSound");
     let introOpened = false;
-
     function openEnvelope() {
       if (introOpened) return;
       introOpened = true;
-
-      openSound.currentTime = 0;
-      openSound.play().catch(() => {});
 
       const rect = heartBtn.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -657,15 +1126,25 @@
       spawnIntroBurst(cx, cy, 70);
       drawIntroBurst();
 
+      /* Step 1 → 2: chậm hơn 0.2s, burst chạy song song */
+      const OPEN_ENVELOPE_DELAY = 200;
+
+      envelopeWrap.classList.add("hidden");
+
       setTimeout(() => {
-        introBursting = false;
-        envelopeWrap.classList.add("hidden");
+        letterWrap.classList.remove("transitioning");
         letterWrap.classList.add("visible");
-      }, 1200);
+      }, OPEN_ENVELOPE_DELAY);
+
+      setTimeout(() => { introBursting = false; }, 900);
     }
 
     heartBtn.addEventListener("click", (e) => { e.stopPropagation(); openEnvelope(); });
     envelopeWrap.addEventListener("click", openEnvelope);
+    document.querySelector(".flat-envelope").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEnvelope();
+    });
 
     /* ── Flower burst canvas ── */
     const canvas = document.getElementById("flowerCanvas");
@@ -673,7 +1152,6 @@
     let particles = [];
     let animating = false;
     let burstPhase = 0;
-    let fillInterval = null;
 
     const PETAL_COLORS = [
       "#ff6b9d", "#ff85a8", "#ffb3c9", "#ffd166",
@@ -708,43 +1186,39 @@
       ctx.restore();
     }
 
-    function spawnBurst(x, y, count, speed) {
+    function spawnBurst(x, y, count, speed, source) {
       for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const vel = speed * (0.4 + Math.random() * 0.8);
+        let vx, vy;
+        let gravity = 0.04 + Math.random() * 0.06;
+        let friction = 0.985 + Math.random() * 0.01;
+
+        if (source === "yes") {
+          const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.05;
+          const vel = speed * (0.55 + Math.random() * 0.95);
+          vx = Math.cos(angle) * vel;
+          vy = Math.sin(angle) * vel;
+          gravity = 0.08 + Math.random() * 0.07;
+          friction = 0.992 + Math.random() * 0.006;
+        } else {
+          const angle = Math.random() * Math.PI * 2;
+          const vel = speed * (0.4 + Math.random() * 0.8);
+          vx = Math.cos(angle) * vel;
+          vy = Math.sin(angle) * vel - Math.random() * 2;
+        }
+
         particles.push({
           x, y,
-          vx: Math.cos(angle) * vel,
-          vy: Math.sin(angle) * vel - Math.random() * 2,
+          vx, vy,
           size: 6 + Math.random() * 14,
           color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
           rotation: Math.random() * Math.PI * 2,
           rotSpeed: (Math.random() - 0.5) * 0.12,
-          gravity: 0.04 + Math.random() * 0.06,
-          friction: 0.985 + Math.random() * 0.01,
+          gravity,
+          friction,
           life: 1,
           decay: 0.002 + Math.random() * 0.004,
-          settled: false
-        });
-      }
-    }
-
-    function spawnFill(count) {
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: -20 - Math.random() * 60,
-          vx: (Math.random() - 0.5) * 3,
-          vy: 1 + Math.random() * 4,
-          size: 8 + Math.random() * 16,
-          color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
-          rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.08,
-          gravity: 0.06 + Math.random() * 0.05,
-          friction: 0.99,
-          life: 1,
-          decay: 0.001,
-          settled: false
+          settled: false,
+          source: source || null
         });
       }
     }
@@ -772,58 +1246,410 @@
               p.settled = true;
               p.vy = 0;
               p.vx = 0;
+              if (p.source === "yes") p.settledAt = Date.now();
             }
           }
         }
+
+        let drawAlpha = 1;
+        if (p.source === "yes" && step3AmbienceStarted && p.settledAt) {
+          const age = Date.now() - p.settledAt;
+          drawAlpha = Math.max(0, 1 - age / FLOWER_FADE_MS);
+          if (drawAlpha <= 0.01) continue;
+        }
+
+        ctx.globalAlpha = drawAlpha;
         drawFlower(p.x, p.y, p.size, p.color, p.rotation);
       }
 
+      ctx.globalAlpha = 1;
+      tryStartStep3Ambience();
       requestAnimationFrame(animate);
+    }
+
+    let yesSprayDone = false;
+    let pendingStep3Ambience = false;
+    let step3AmbienceStarted = false;
+    let step2TransitionStarted = false;
+    const FLOWER_FADE_MS = 20000;
+    const snowGroundEl = document.getElementById("snowGround");
+    let snowSpawnTimer = null;
+
+    function tryStartStep3Ambience() {
+      if (!pendingStep3Ambience || !yesSprayDone || step3AmbienceStarted) return;
+
+      const yesParticles = particles.filter((p) => p.source === "yes");
+      if (yesParticles.length > 0 && !yesParticles.every((p) => p.settled)) return;
+
+      step3AmbienceStarted = true;
+      pendingStep3Ambience = false;
+      document.body.classList.add("fireflies-live", "snow-live");
+      startFireflies();
+      startSceneSnow();
+    }
+
+    const SNOW_MAX_VH = 20;
+    let snowAccumulationVh = 0;
+
+    function accumulateSnow(amount) {
+      snowAccumulationVh = Math.min(SNOW_MAX_VH, snowAccumulationVh + amount);
+      if (snowGroundEl) snowGroundEl.style.height = snowAccumulationVh + "vh";
     }
 
     /* ── Yes button ── */
     const yesBtn = document.getElementById("yesBtn");
     const letter = document.getElementById("letter");
-    const yesSound = document.getElementById("yesSound");
 
-    yesBtn.addEventListener("click", () => {
+    /* ── Tuyết: đốm trắng (nhiều) + bông tuyết (ít) ── */
+    const scenePetals = document.getElementById("scenePetals");
+    const snowCanvas = document.getElementById("snowCanvas");
+    const snowCtx = snowCanvas ? snowCanvas.getContext("2d") : null;
+    let snowDots = [];
+    let snowAnimating = false;
+    let snowFlakeTimer = null;
+    const SNOW_MAX_DOTS = 95;
+    const SNOW_ACCUM_PER_DOT = 0.055;
+
+    function resizeSnowCanvas() {
+      if (!snowCanvas) return;
+      snowCanvas.width = window.innerWidth;
+      snowCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeSnowCanvas);
+
+    function spawnSnowDot(staggerIndex) {
+      if (!snowCanvas) return;
+      const depth = Math.random();
+      const stagger = staggerIndex != null ? staggerIndex * 14 : 0;
+      snowDots.push({
+        x: Math.random() * snowCanvas.width,
+        y: -6 - Math.random() * 90 - stagger,
+        vy: 0.18 + depth * 0.42 + Math.random() * 0.14,
+        vx: (Math.random() - 0.5) * 0.05,
+        radius: 1.4 + depth * 2.2 + Math.random() * 0.85,
+        alpha: 0.48 + depth * 0.38 + Math.random() * 0.12
+      });
+    }
+
+    function drawSnowDot(s) {
+      const glowR = s.radius * 1.75;
+      const grad = snowCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+      grad.addColorStop(0, `rgba(255, 255, 255, ${Math.min(1, s.alpha + 0.42)})`);
+      grad.addColorStop(0.38, `rgba(255, 255, 255, ${s.alpha * 0.92})`);
+      grad.addColorStop(0.68, `rgba(255, 255, 255, ${s.alpha * 0.45})`);
+      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+      snowCtx.fillStyle = grad;
+      snowCtx.beginPath();
+      snowCtx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+      snowCtx.fill();
+    }
+
+    function animateSnowDots() {
+      if (!snowAnimating || !snowCtx || !snowCanvas) return;
+      snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+
+      const pilePx = (snowAccumulationVh / SNOW_MAX_VH) * snowCanvas.height * 0.16;
+      const groundY = snowCanvas.height - pilePx;
+
+      for (let i = snowDots.length - 1; i >= 0; i--) {
+        const s = snowDots[i];
+        s.y += s.vy;
+        s.x += s.vx;
+
+        const glowR = s.radius * 1.75;
+        if (s.y + glowR * 0.5 >= groundY) {
+          accumulateSnow(SNOW_ACCUM_PER_DOT * (0.7 + s.radius * 0.12));
+          snowDots.splice(i, 1);
+          continue;
+        }
+
+        if (s.x < -8) s.x = snowCanvas.width + 8;
+        if (s.x > snowCanvas.width + 8) s.x = -8;
+
+        drawSnowDot(s);
+      }
+
+      requestAnimationFrame(animateSnowDots);
+    }
+
+    function addSnowFlake() {
+      if (scenePetals.querySelectorAll(".snow-flake").length >= 8) return;
+      const s = document.createElement("span");
+      s.className = "snow-flake";
+      s.textContent = Math.random() > 0.5 ? "❄" : "❅";
+      s.style.left = (4 + Math.random() * 92) + "%";
+      s.style.fontSize = (14 + Math.random() * 12) + "px";
+      s.style.animationDuration = (9 + Math.random() * 6) + "s";
+      s.style.setProperty("--snow-drift", ((Math.random() - 0.5) * 28) + "px");
+      scenePetals.appendChild(s);
+    }
+
+    function startSceneSnow() {
+      if (!snowCanvas || !snowCtx) return;
+
+      resizeSnowCanvas();
+      snowDots = [];
+      snowAccumulationVh = 0;
+      if (snowGroundEl) snowGroundEl.style.height = "0";
+      snowAnimating = true;
+
+      for (let i = 0; i < 22; i++) spawnSnowDot(i);
+
+      snowSpawnTimer = setInterval(() => {
+        if (snowDots.length < SNOW_MAX_DOTS) spawnSnowDot();
+      }, 160);
+
+      animateSnowDots();
+
+      addSnowFlake();
+      addSnowFlake();
+      snowFlakeTimer = setInterval(addSnowFlake, 2800);
+      setTimeout(() => clearInterval(snowFlakeTimer), 36000);
+    }
+
+    /* ── Peaceful fireflies ── */
+    const firefliesEl = document.getElementById("fireflies");
+    const fireflies = [];
+    let firefliesRunning = false;
+    const FIREFLY_COUNT = 40;
+
+    function randomFireflyTarget() {
+      return {
+        x: 0.05 + Math.random() * 0.9,
+        y: 0.05 + Math.random() * 0.9
+      };
+    }
+
+    function spawnFireflyFromEdge() {
+      const el = document.createElement("div");
+      el.className = "firefly" + (Math.random() < 0.2 ? " firefly--warm" : "");
+      const size = 3.5 + Math.random() * 4;
+      el.style.width = size + "px";
+      el.style.height = size + "px";
+      el.style.opacity = "0";
+      firefliesEl.appendChild(el);
+
+      const edge = Math.floor(Math.random() * 4);
+      let x, y;
+
+      switch (edge) {
+        case 0:
+          x = -0.07 - Math.random() * 0.12;
+          y = 0.04 + Math.random() * 0.92;
+          break;
+        case 1:
+          x = 1.07 + Math.random() * 0.12;
+          y = 0.04 + Math.random() * 0.92;
+          break;
+        case 2:
+          x = 0.04 + Math.random() * 0.92;
+          y = -0.07 - Math.random() * 0.12;
+          break;
+        default:
+          x = 0.04 + Math.random() * 0.92;
+          y = 1.07 + Math.random() * 0.12;
+          break;
+      }
+
+      const target = randomFireflyTarget();
+
+      fireflies.push({
+        el,
+        x, y,
+        vx: 0,
+        vy: 0,
+        targetX: target.x,
+        targetY: target.y,
+        speed: 0.00022 + Math.random() * 0.0002,
+        phase: Math.random() * Math.PI * 2,
+        glowSpeed: 0.35 + Math.random() * 0.9,
+        wander: Math.random() * Math.PI * 2,
+        spawnedAt: Date.now()
+      });
+    }
+
+    function getFireflySpawnDelay(index) {
+      if (index < 3) return Math.random() * 2000;
+      return 5000 + Math.random() * 15000;
+    }
+
+    function startFireflies() {
+      if (firefliesRunning) return;
+      firefliesRunning = true;
+      animateFireflies();
+
+      for (let i = 0; i < FIREFLY_COUNT; i++) {
+        setTimeout(spawnFireflyFromEdge, getFireflySpawnDelay(i));
+      }
+    }
+
+    function animateFireflies() {
+      if (!firefliesRunning) return;
+      const t = Date.now() / 1000;
+
+      fireflies.forEach((f) => {
+        const age = Date.now() - f.spawnedAt;
+        const fadeIn = Math.min(1, age / 900);
+
+        f.wander += 0.022;
+        f.vx += Math.sin(f.wander) * 0.000014;
+        f.vy += Math.cos(f.wander * 0.76 + f.phase * 0.15) * 0.000012;
+        f.vx += (Math.random() - 0.5) * 0.000005;
+        f.vy += (Math.random() - 0.5) * 0.000005;
+
+        const dx = f.targetX - f.x;
+        const dy = f.targetY - f.y;
+        const dist = Math.hypot(dx, dy) || 0.001;
+
+        if (dist < 0.045) {
+          const next = randomFireflyTarget();
+          f.targetX = next.x;
+          f.targetY = next.y;
+        } else {
+          f.vx += (dx / dist) * f.speed * 0.06;
+          f.vy += (dy / dist) * f.speed * 0.06;
+        }
+
+        f.vx *= 0.94;
+        f.vy *= 0.94;
+        f.vx = Math.max(-0.00024, Math.min(0.00024, f.vx));
+        f.vy = Math.max(-0.00021, Math.min(0.00021, f.vy));
+
+        f.x += f.vx;
+        f.y += f.vy;
+
+        if (f.x < -0.02) f.x = -0.02;
+        if (f.x > 1.02) f.x = 1.02;
+        if (f.y < -0.02) f.y = -0.02;
+        if (f.y > 1.02) f.y = 1.02;
+
+        const glow = fadeIn * (0.6 + 0.4 * Math.pow(Math.sin(t * f.glowSpeed + f.phase), 2));
+        f.el.style.left = (f.x * 100) + "%";
+        f.el.style.top = (f.y * 100) + "%";
+        f.el.style.opacity = glow;
+        f.el.style.transform = `translate(-50%, -50%) scale(${0.75 + glow * 0.3})`;
+      });
+
+      requestAnimationFrame(animateFireflies);
+    }
+
+    yesBtn.addEventListener("click", acceptInvitation);
+
+    const CROSSFADE_DURATION = 1200;
+    const SPRAY_BURST_COUNT = 28;
+    const SPRAY_BURST_INTERVAL = 65;
+
+    function startStep2ToStep3Transition() {
+      if (step2TransitionStarted) return;
+      step2TransitionStarted = true;
+
+      const wrapRect = letterWrap.getBoundingClientRect();
+      letterWrap.style.setProperty("--letter-pin-left", wrapRect.left + "px");
+      letterWrap.style.setProperty("--letter-pin-top", wrapRect.top + "px");
+      letterWrap.style.setProperty("--letter-pin-width", wrapRect.width + "px");
+
+      letterWrap.classList.add("transitioning");
+      letter.classList.add("accepted");
+
+      document.body.classList.add("accepted", "crossfading");
+      document.documentElement.classList.add("step-accepted");
+      document.documentElement.style.overflow = "hidden";
+
+      /* Thư mất hẳn rồi mới hiện text Yay */
+      setTimeout(() => {
+        letter.classList.add("transition-done");
+        letterWrap.classList.remove("transitioning");
+        letterWrap.style.removeProperty("--letter-pin-left");
+        letterWrap.style.removeProperty("--letter-pin-top");
+        letterWrap.style.removeProperty("--letter-pin-width");
+
+        letter.classList.add("show-success");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            letter.classList.add("reveal-success");
+          });
+        });
+      }, CROSSFADE_DURATION);
+    }
+
+    function finishYesSpray() {
+      yesSprayDone = true;
+      tryStartStep3Ambience();
+      startStep2ToStep3Transition();
+    }
+
+    function acceptInvitation() {
       if (animating) return;
       animating = true;
       yesBtn.disabled = true;
-      yesSound.currentTime = 0;
-      yesSound.play().catch(() => {});
 
       const rect = letter.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
 
-      /* Phase 1: burst from letter center */
-      spawnBurst(cx, cy, 80, 12);
+      yesSprayDone = false;
+      pendingStep3Ambience = true;
+      step3AmbienceStarted = false;
+      step2TransitionStarted = false;
+
+      spawnBurst(cx, cy, 115, 15, "yes");
       animate();
 
-      /* Phase 2: continuous spray from letter */
       let sprayCount = 0;
       const sprayInterval = setInterval(() => {
-        spawnBurst(cx, cy, 15, 10);
+        spawnBurst(cx, cy, 26, 13, "yes");
         sprayCount++;
-        if (sprayCount > 25) clearInterval(sprayInterval);
-      }, 120);
+        if (sprayCount >= SPRAY_BURST_COUNT) {
+          clearInterval(sprayInterval);
+          finishYesSpray();
+        }
+      }, SPRAY_BURST_INTERVAL);
+    }
 
-      /* Phase 3: rain flowers to fill screen */
-      setTimeout(() => {
-        fillInterval = setInterval(() => {
-          spawnFill(12);
-        }, 180);
-      }, 800);
+    /* ── Mobile swipe: left/right → next step ── */
+    const SWIPE_MIN = 48;
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipeActive = false;
 
-      /* Phase 4: more density */
-      setTimeout(() => {
-        clearInterval(fillInterval);
-        fillInterval = setInterval(() => spawnFill(20), 100);
-      }, 3000);
+    function isMobileSwipe() {
+      return window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 768;
+    }
 
-      setTimeout(() => clearInterval(fillInterval), 7000);
-    });
+    function getBloomStep() {
+      if (letter.classList.contains("accepted")) return "done";
+      if (introOpened) return "letter";
+      return "envelope";
+    }
+
+    function advanceBloomStep() {
+      const step = getBloomStep();
+      if (step === "envelope") openEnvelope();
+      else if (step === "letter") acceptInvitation();
+    }
+
+    document.addEventListener("touchstart", (e) => {
+      if (!isMobileSwipe()) return;
+      const t = e.touches[0];
+      swipeStartX = t.clientX;
+      swipeStartY = t.clientY;
+      swipeActive = true;
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+      if (!swipeActive || !isMobileSwipe()) return;
+      swipeActive = false;
+
+      const t = e.changedTouches[0];
+      const dx = t.clientX - swipeStartX;
+      const dy = t.clientY - swipeStartY;
+
+      if (Math.abs(dx) < SWIPE_MIN) return;
+      if (Math.abs(dy) > Math.abs(dx)) return;
+
+      advanceBloomStep();
+    }, { passive: true });
   </script>
 </body>
 </html>
