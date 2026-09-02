@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sweetie Letters 💌</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --shadow: rgba(74, 44, 53, 0.22);
+    }
+
+    html, body {
+      min-height: 100%;
+      min-height: 100dvh;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+      background-size: 400% 400%;
+      animation: bgMove 14s ease infinite;
+      overflow: hidden;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px 32px;
+    }
+
+    /* ─── Thư đóng ─── */
+    .step-envelope {
+      width: min(96vw, 580px);
+      transition: transform 0.4s ease, opacity 0.5s ease;
+    }
+
+    .step-envelope.hidden {
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    .envelope-scene {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .envelope-stack {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .envelope-stack img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      filter: drop-shadow(0 18px 28px var(--shadow));
+    }
+
+    /* ─── Đọc thư (hiện như bloom/pacar) ─── */
+    .step-reader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 12px 72px;
+      opacity: 0;
+      transform: translateY(30px) scale(0.92);
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.6s ease 0.3s,
+        transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s,
+        visibility 0s linear 1s;
+    }
+
+    .step-reader.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        opacity 0.6s ease 0.3s,
+        transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s,
+        visibility 0s;
+    }
+
+    .reader-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: min(88vw, 409px);
+      margin-bottom: 14px;
+      padding: 0 4px;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 0.82rem;
+      text-shadow: 0 1px 8px rgba(74, 44, 53, 0.35);
+    }
+
+    .page-indicator { font-weight: 500; letter-spacing: 0.04em; }
+    .swipe-hint { opacity: 0.85; font-size: 0.78rem; }
+
+    .flip-stage {
+      position: relative;
+      width: min(88vw, 409px);
+      aspect-ratio: 409 / 610;
+      perspective: 2200px;
+      transform-style: preserve-3d;
+      touch-action: pan-y pinch-zoom;
+      cursor: default;
+    }
+
+    .page-static,
+    .flip-sheet {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+    }
+
+    .page-static {
+      z-index: 1;
+      filter: drop-shadow(0 16px 36px rgba(74, 44, 53, 0.28));
+    }
+
+    .flip-sheet {
+      z-index: 5;
+      transform-origin: left center;
+      transform: rotateY(0deg);
+      pointer-events: none;
+      filter: drop-shadow(-6px 10px 24px rgba(74, 44, 53, 0.22));
+    }
+
+    .flip-sheet.is-dragging { transition: none; }
+
+    .flip-sheet.is-animating {
+      transition: transform 0.65s cubic-bezier(0.4, 0.15, 0.15, 1);
+    }
+
+    .flip-sheet::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0%, transparent 28%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      transition: opacity 0.2s ease;
+    }
+
+    .flip-sheet.turning-forward::after,
+    .flip-sheet.turning-back::after { opacity: 1; }
+
+    .flip-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .flip-face.back { transform: rotateY(180deg); }
+
+    .letter-page {
+      width: 100%;
+      height: 100%;
+    }
+
+    .letter-page img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
+    .nav-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .nav-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .nav-dots span.active {
+      background: #fff;
+      transform: scale(1.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="step-envelope" id="stepEnvelope" aria-label="Mở thư">
+      <div class="envelope-scene" id="envelopeScene" role="button" tabindex="0" aria-label="Chạm để mở thư">
+        <div class="envelope-stack">
+          <img src="images/closing-letter.png" alt="Thư đóng" draggable="false" />
+        </div>
+      </div>
+    </section>
+
+    <section class="step-reader" id="stepReader" aria-label="Đọc thư">
+      <div class="reader-toolbar">
+        <span class="page-indicator" id="pageIndicator">1 / 2</span>
+        <span class="swipe-hint" id="swipeHint">Vuốt phải để xem tiếp →</span>
+      </div>
+
+      <div class="flip-stage" id="flipStage">
+        <div class="page-static" id="pageStatic"></div>
+        <div class="flip-sheet" id="flipSheet" hidden>
+          <div class="flip-face front" id="flipFront"></div>
+          <div class="flip-face back" id="flipBack"></div>
+        </div>
+      </div>
+
+      <div class="nav-dots" id="navDots" aria-hidden="true"></div>
+    </section>
+  </div>
+
+  <script>
+    const LETTER_PAGES = [
+      "images/letter-1.png",
+      "images/letter-2.png",
+    ];
+  </script>
+
+  <script>
+    (function () {
+      const scene = document.getElementById("envelopeScene");
+      const stepEnvelope = document.getElementById("stepEnvelope");
+      const stepReader = document.getElementById("stepReader");
+      const pageStatic = document.getElementById("pageStatic");
+      const flipSheet = document.getElementById("flipSheet");
+      const flipFront = document.getElementById("flipFront");
+      const flipBack = document.getElementById("flipBack");
+      const flipStage = document.getElementById("flipStage");
+      const pageIndicator = document.getElementById("pageIndicator");
+      const swipeHint = document.getElementById("swipeHint");
+      const navDots = document.getElementById("navDots");
+
+      let envelopeOpened = false;
+      let currentPage = 0;
+      let isAnimating = false;
+      let dragStartX = 0;
+      let dragCurrentX = 0;
+      let isDragging = false;
+
+      function buildPageNode(src) {
+        const wrap = document.createElement("div");
+        wrap.className = "letter-page";
+        wrap.innerHTML = `<img src="${src}" alt="" draggable="false" />`;
+        return wrap;
+      }
+
+      function renderStaticPage(index) {
+        pageStatic.innerHTML = "";
+        pageStatic.appendChild(buildPageNode(LETTER_PAGES[index]));
+      }
+
+      function renderDots() {
+        navDots.innerHTML = "";
+        LETTER_PAGES.forEach((_, i) => {
+          const dot = document.createElement("span");
+          if (i === currentPage) dot.classList.add("active");
+          navDots.appendChild(dot);
+        });
+      }
+
+      function updateReaderUI() {
+        const total = LETTER_PAGES.length;
+        pageIndicator.textContent = `${currentPage + 1} / ${total}`;
+        renderDots();
+
+        if (currentPage === 0) {
+          swipeHint.textContent = "Vuốt phải để xem tiếp →";
+        } else if (currentPage === total - 1) {
+          swipeHint.textContent = "← Vuốt trái để xem lại";
+        } else {
+          swipeHint.textContent = "← Vuốt trái · Vuốt phải →";
+        }
+
+        flipStage.style.cursor = "default";
+      }
+
+      function updateFlipCursor(clientX, clientY) {
+        if (!stepReader.classList.contains("active")) return;
+
+        const rect = flipStage.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        const inMiddleY = y >= rect.height * 0.22 && y <= rect.height * 0.78;
+        const onLeftEdge = x <= rect.width * 0.2;
+        const onRightEdge = x >= rect.width * 0.8;
+
+        if (inMiddleY && onLeftEdge && canGoPrev()) {
+          flipStage.style.cursor = "pointer";
+        } else if (inMiddleY && onRightEdge && canGoNext()) {
+          flipStage.style.cursor = "pointer";
+        } else {
+          flipStage.style.cursor = "default";
+        }
+      }
+
+      function resetFlipSheet() {
+        flipSheet.hidden = true;
+        flipSheet.classList.remove("is-dragging", "is-animating", "turning-forward", "turning-back");
+        flipSheet.style.transform = "rotateY(0deg)";
+      }
+
+      function openLetter() {
+        if (envelopeOpened) return;
+        envelopeOpened = true;
+        stepEnvelope.classList.add("hidden");
+        stepReader.classList.add("active");
+        currentPage = 0;
+        renderStaticPage(currentPage);
+        updateReaderUI();
+      }
+
+      scene.addEventListener("click", openLetter);
+      scene.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openLetter();
+        }
+      });
+
+      function canGoNext() { return currentPage < LETTER_PAGES.length - 1; }
+      function canGoPrev() { return currentPage > 0; }
+
+      function angleFromDrag(deltaX) {
+        const maxDrag = flipStage.offsetWidth * 0.55;
+        const clamped = Math.max(-maxDrag, Math.min(maxDrag, deltaX));
+        return -(clamped / maxDrag) * 180;
+      }
+
+      function prepareFlipSheet(frontIndex, backIndex) {
+        flipFront.innerHTML = "";
+        flipBack.innerHTML = "";
+        flipFront.appendChild(buildPageNode(LETTER_PAGES[frontIndex]));
+        flipBack.appendChild(buildPageNode(LETTER_PAGES[backIndex]));
+        flipSheet.hidden = false;
+      }
+
+      function cancelFlip() {
+        renderStaticPage(currentPage);
+        resetFlipSheet();
+        isAnimating = false;
+      }
+
+      function finishFlipNext() {
+        currentPage += 1;
+        renderStaticPage(currentPage);
+        resetFlipSheet();
+        updateReaderUI();
+        isAnimating = false;
+      }
+
+      function finishFlipPrev() {
+        currentPage -= 1;
+        renderStaticPage(currentPage);
+        resetFlipSheet();
+        updateReaderUI();
+        isAnimating = false;
+      }
+
+      function flipNext() {
+        if (!canGoNext() || isAnimating) return;
+        isAnimating = true;
+        renderStaticPage(currentPage + 1);
+        prepareFlipSheet(currentPage, currentPage + 1);
+        flipSheet.classList.add("is-animating", "turning-forward");
+        flipSheet.style.transform = "rotateY(0deg)";
+        requestAnimationFrame(() => {
+          flipSheet.style.transform = "rotateY(-180deg)";
+        });
+        flipSheet.addEventListener("transitionend", finishFlipNext, { once: true });
+      }
+
+      function flipPrev() {
+        if (!canGoPrev() || isAnimating) return;
+        isAnimating = true;
+        renderStaticPage(currentPage - 1);
+        prepareFlipSheet(currentPage - 1, currentPage);
+        flipSheet.classList.add("is-animating", "turning-back");
+        flipSheet.style.transform = "rotateY(-180deg)";
+        requestAnimationFrame(() => {
+          flipSheet.style.transform = "rotateY(0deg)";
+        });
+        flipSheet.addEventListener("transitionend", finishFlipPrev, { once: true });
+      }
+
+      function onDragStart(clientX) {
+        if (isAnimating) return;
+        isDragging = true;
+        dragStartX = clientX;
+        dragCurrentX = clientX;
+      }
+
+      function onDragMove(clientX) {
+        if (!isDragging || isAnimating) return;
+        dragCurrentX = clientX;
+        const deltaX = dragCurrentX - dragStartX;
+
+        if (deltaX > 0 && !canGoNext()) return;
+        if (deltaX < 0 && !canGoPrev()) return;
+        if (Math.abs(deltaX) < 8) return;
+
+        if (deltaX > 0 && canGoNext()) {
+          if (flipSheet.hidden) {
+            renderStaticPage(currentPage + 1);
+            prepareFlipSheet(currentPage, currentPage + 1);
+            flipSheet.classList.add("is-dragging", "turning-forward");
+          }
+          flipSheet.style.transform = `rotateY(${angleFromDrag(deltaX)}deg)`;
+        } else if (deltaX < 0 && canGoPrev()) {
+          if (flipSheet.hidden) {
+            renderStaticPage(currentPage - 1);
+            prepareFlipSheet(currentPage - 1, currentPage);
+            flipSheet.classList.add("is-dragging", "turning-back");
+            flipSheet.style.transform = "rotateY(-180deg)";
+          }
+          flipSheet.style.transform = `rotateY(${-180 + angleFromDrag(deltaX)}deg)`;
+        }
+      }
+
+      function onDragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        const deltaX = dragCurrentX - dragStartX;
+        const threshold = flipStage.offsetWidth * 0.22;
+
+        flipSheet.classList.remove("is-dragging");
+
+        if (deltaX > threshold && canGoNext()) {
+          flipNext();
+          return;
+        }
+        if (deltaX < -threshold && canGoPrev()) {
+          flipPrev();
+          return;
+        }
+
+        if (!flipSheet.hidden) {
+          flipSheet.classList.add("is-animating");
+          const goingForward = flipSheet.classList.contains("turning-forward");
+          flipSheet.style.transform = goingForward ? "rotateY(0deg)" : "rotateY(-180deg)";
+          flipSheet.addEventListener("transitionend", cancelFlip, { once: true });
+        }
+      }
+
+      flipStage.addEventListener("mousemove", (e) => updateFlipCursor(e.clientX, e.clientY));
+      flipStage.addEventListener("mouseleave", () => {
+        flipStage.style.cursor = "default";
+      });
+
+      flipStage.addEventListener("touchstart", (e) => onDragStart(e.touches[0].clientX), { passive: true });
+      flipStage.addEventListener("touchmove", (e) => onDragMove(e.touches[0].clientX), { passive: true });
+      flipStage.addEventListener("touchend", onDragEnd);
+
+      flipStage.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        onDragStart(e.clientX);
+      });
+      window.addEventListener("mousemove", (e) => onDragMove(e.clientX));
+      window.addEventListener("mouseup", onDragEnd);
+
+      flipStage.addEventListener("click", (e) => {
+        if (Math.abs(dragCurrentX - dragStartX) > 10) return;
+        const rect = flipStage.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x > rect.width * 0.55 && canGoNext()) flipNext();
+        else if (x < rect.width * 0.45 && canGoPrev()) flipPrev();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Date Invitation 💌</title>
+  <title>Date Invitation 📆</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -104,6 +104,7 @@
       padding: 28px 24px 32px;
       box-shadow: 0 20px 60px rgba(255, 77, 109, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
       text-align: center;
+      position: relative;
     }
 
     .card-mint {
@@ -113,6 +114,12 @@
       box-shadow: 0 16px 40px rgba(80, 120, 100, 0.12);
       border-top: 3px solid #f4a5a5;
       text-align: center;
+      position: relative;
+    }
+
+    .step-panel {
+      position: relative;
+      width: 100%;
     }
 
     .step-kicker {
@@ -288,7 +295,31 @@
       transform: translateY(0);
     }
 
-    /* ── Step 1: Invitation ── */
+    #step1 {
+      width: min(86%, 300px);
+    }
+
+    #step1 .card {
+      padding: 22px 18px 26px;
+    }
+
+    #step1 .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 14px;
+      margin: 0 auto 16px;
+      display: block;
+      object-fit: cover;
+    }
+
+    #step1 .hand-title {
+      font-size: clamp(24px, 6vw, 30px);
+    }
+
+    #step1 .subtext {
+      margin-bottom: 18px;
+    }
+
     .avatar {
       width: 110px; height: 110px;
       border-radius: 16px;
@@ -314,9 +345,7 @@
     }
 
     .btn-area {
-      position: relative;
-      height: 120px;
-      margin-top: 24px;
+      margin-top: 8px;
     }
 
     .btn {
@@ -333,29 +362,17 @@
     .btn:active { transform: scale(0.96); }
 
     .btn-yes {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      width: 100%;
       background: linear-gradient(135deg, var(--rose), #ff85a8);
       color: #fff;
       box-shadow: 0 12px 30px rgba(255, 77, 109, 0.45);
-      padding: 14px 40px;
+      padding: 14px 24px;
       font-size: 16px;
     }
 
     .btn-yes:hover {
-      transform: translateX(-50%) translateY(-2px);
+      transform: translateY(-2px);
       box-shadow: 0 16px 36px rgba(255, 77, 109, 0.55);
-    }
-
-    .btn-no {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--gray);
-      font-size: 13px;
-      padding: 10px 22px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transition: left 0.15s ease, top 0.15s ease;
     }
 
     /* ── Step 2: Date/Time ── */
@@ -625,6 +642,51 @@
 
     .btn-wa { border-color: #25d366; color: #128c3e; }
     .btn-wa:hover { background: rgba(37, 211, 102, 0.08); }
+
+    .step-back {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .step-back {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 10;
+        opacity: 0.3;
+        transform: translateX(0);
+        transition:
+          opacity 0.3s ease,
+          transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1),
+          background 0.25s ease,
+          box-shadow 0.25s ease;
+      }
+
+      .step-back:hover {
+        opacity: 1;
+        background: rgba(61, 42, 50, 0.09);
+        box-shadow: 0 2px 10px rgba(61, 42, 50, 0.1);
+        transform: translateX(-4px);
+      }
+
+      .step-back:active {
+        opacity: 0.75;
+        transform: translateX(-2px) scale(0.94);
+      }
+    }
   </style>
 </head>
 <body>
@@ -640,7 +702,7 @@
         <p class="intro-label" id="introLabel">Personal Invitation For …</p>
         <div class="envelope-wrap" id="envelopeWrap">
           <div class="flat-envelope">
-            <button class="heart-btn" id="heartBtn" aria-label="Mở thiệp"><i data-lucide="heart"></i></button>
+            <button class="heart-btn" id="heartBtn" aria-label="Open invitation"><i data-lucide="heart"></i></button>
           </div>
         </div>
         <div class="tap-hint">
@@ -653,13 +715,13 @@
     <!-- Step 1: Main Invitation -->
     <section class="step" id="step1">
       <div class="card">
+        <button class="step-back" type="button" aria-label="Go back">←</button>
         <p class="special-label">Special Invitation</p>
-        <img class="avatar" id="avatarEl" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=220&h=220&fit=crop" alt="" />
+        <img class="avatar" id="avatarEl" src="images/avatar.jpg" alt="" />
         <h1 class="hand-title">Would You Like To Go Out With Me?</h1>
         <p class="subtext" id="fromSubtext">from …</p>
         <div class="btn-area" id="btnArea">
-          <button class="btn btn-yes" id="yesBtn">Yes 💖</button>
-          <button class="btn btn-no" id="noBtn">No 🙈</button>
+          <button class="btn btn-yes" id="yesBtn">Yes</button>
         </div>
       </div>
     </section>
@@ -667,75 +729,81 @@
     <!-- Step 2: Date & Time -->
     <section class="step" id="step2">
       <div class="card-mint">
-        <p class="step-kicker">lịch hẹn</p>
-        <h2 class="hand-title">Em rảnh khi nào?</h2>
+        <button class="step-back" type="button" aria-label="Go back">←</button>
+        <p class="step-kicker">our date</p>
+        <h2 class="hand-title">When are you free?</h2>
         <div class="field-group">
-          <label class="field-label" for="dateInput"><i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px"></i> Chọn ngày</label>
+          <label class="field-label" for="dateInput"><i data-lucide="calendar" style="width:14px;height:14px;vertical-align:-2px"></i> Pick a date</label>
           <input type="date" id="dateInput" />
         </div>
         <div class="field-group">
-          <span class="field-label">Chọn buổi</span>
+          <span class="field-label">Time of day</span>
           <div class="chip-row" id="sessionChips">
-            <button type="button" class="chip" data-session="Sáng">Sáng</button>
-            <button type="button" class="chip" data-session="Trưa">Trưa</button>
-            <button type="button" class="chip" data-session="Chiều">Chiều</button>
-            <button type="button" class="chip" data-session="Tối">Tối</button>
+            <button type="button" class="chip" data-session="Morning">Morning</button>
+            <button type="button" class="chip" data-session="Noon">Noon</button>
+            <button type="button" class="chip" data-session="Afternoon">Afternoon</button>
+            <button type="button" class="chip" data-session="Night">Night</button>
           </div>
         </div>
         <div class="field-group">
-          <label class="field-label" for="timeInput"><i data-lucide="clock" style="width:14px;height:14px;vertical-align:-2px"></i> Giờ cụ thể</label>
+          <label class="field-label" for="timeInput"><i data-lucide="clock" style="width:14px;height:14px;vertical-align:-2px"></i> Exact time</label>
           <input type="time" id="timeInput" value="18:00" />
         </div>
-        <button class="btn-continue" id="step2Next">Tiếp tục →</button>
+        <button class="btn-continue" id="step2Next">Continue →</button>
       </div>
     </section>
 
     <!-- Step 3: Activities -->
     <section class="step" id="step3">
       <div class="card-mint">
-        <p class="step-kicker">kế hoạch của mình</p>
-        <h2 class="hand-title">Tụi mình sẽ làm gì nhỉ?</h2>
+        <button class="step-back" type="button" aria-label="Go back">←</button>
+        <p class="step-kicker">our plan</p>
+        <h2 class="hand-title">What should we do?</h2>
         <div class="activity-grid" id="activityGrid"></div>
         <div class="field-group">
-          <input type="text" id="customActivity" placeholder="Hoặc viết ý tưởng của em..." />
+          <input type="text" id="customActivity" placeholder="Or write your own idea..." />
         </div>
-        <button class="btn-continue" id="step3Next">Tiếp tục →</button>
+        <button class="btn-continue" id="step3Next">Continue →</button>
       </div>
     </section>
 
     <!-- Step 4: Dress Code -->
     <section class="step" id="step4">
       <div class="card-mint">
-        <p class="step-kicker">cho thêm phần chuyên nghiệp</p>
-        <h2 class="hand-title">Dress code nhé?</h2>
+        <button class="step-back" type="button" aria-label="Go back">←</button>
+        <p class="step-kicker">just to be sure</p>
+        <h2 class="hand-title">Dress code?</h2>
         <div class="chip-row" id="dressChips" style="justify-content: center; margin-bottom: 16px;"></div>
         <div class="field-group">
-          <input type="text" id="customDress" placeholder="Hoặc ghi ý tưởng riêng..." />
+          <input type="text" id="customDress" placeholder="Or write your own..." />
         </div>
-        <button class="btn-continue" id="step4Next">Tiếp tục →</button>
+        <button class="btn-continue" id="step4Next">Continue →</button>
       </div>
     </section>
 
     <!-- Step 5: Message -->
     <section class="step" id="step5">
       <div class="card-mint">
-        <p class="step-kicker">cuối cùng</p>
-        <h2 class="hand-title" id="messageTitle">Em có lời nhắn gì cho anh không?</h2>
+        <button class="step-back" type="button" aria-label="Go back">←</button>
+        <p class="step-kicker">lastly</p>
+        <h2 class="hand-title" id="messageTitle">Any message for …?</h2>
         <div class="field-group">
-          <textarea id="messageInput" placeholder="Ví dụ: đừng đến trễ nữa nhé!!"></textarea>
+          <textarea id="messageInput" placeholder="e.g. don't be late again!!"></textarea>
         </div>
-        <button class="btn-continue" id="step5Next">Tạo vé ngay ✨</button>
+        <button class="btn-continue" id="step5Next">Create ticket ✨</button>
       </div>
     </section>
 
     <!-- Step 6: Ticket -->
     <section class="step" id="step6">
-      <div class="celebrate">
-        <h2>Yeay, it's a date!</h2>
-        <p>Lưu vé của em ở dưới</p>
-      </div>
-      <div class="ticket-wrap">
-        <div class="ticket" id="ticketEl">
+      <div class="step-panel">
+        <button class="step-back" type="button" aria-label="Go back">←</button>
+        <div class="celebrate">
+          <h2>Yeay, it's a date!</h2>
+          <p>SAVE YOUR TICKET BELOW</p>
+        </div>
+        <div class="ticket-wrap">
+          <div class="ticket" id="ticketEl">
           <div class="ticket-top">
             <span>Admit Two</span>
             <div class="ticket-heart-ring"><i data-lucide="heart"></i></div>
@@ -743,15 +811,15 @@
           <h3 class="ticket-title">Date Invitation</h3>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="user"></i></div>
-            <div><strong>Dành cho</strong><span id="tFor"></span></div>
+            <div><strong>For</strong><span id="tFor"></span></div>
           </div>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="calendar"></i></div>
-            <div><strong>Thời gian</strong><span id="tWhen"></span></div>
+            <div><strong>When</strong><span id="tWhen"></span></div>
           </div>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="sparkles"></i></div>
-            <div><strong>Hoạt động</strong><span id="tActivities"></span></div>
+            <div><strong>Activities</strong><span id="tActivities"></span></div>
           </div>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="shirt"></i></div>
@@ -759,17 +827,18 @@
           </div>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="message-circle"></i></div>
-            <div><strong>Lời nhắn từ em</strong><span id="tHerMsg"></span></div>
+            <div><strong>Message from her</strong><span id="tHerMsg"></span></div>
           </div>
           <div class="ticket-row">
             <div class="row-icon"><i data-lucide="heart"></i></div>
-            <div><strong>Lời nhắn từ anh</strong><span id="tHisMsg"></span></div>
+            <div><strong>Message from him</strong><span id="tHisMsg"></span></div>
           </div>
         </div>
         <div class="ticket-actions">
-          <button class="btn-continue" id="downloadBtn"><i data-lucide="download" style="width:16px;height:16px;vertical-align:-3px"></i> Tải vé về máy</button>
-          <button class="btn-secondary btn-zalo" id="zaloBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Gửi qua Zalo</button>
-          <button class="btn-secondary btn-wa" id="waBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Gửi qua WhatsApp</button>
+          <button class="btn-continue" id="downloadBtn"><i data-lucide="download" style="width:16px;height:16px;vertical-align:-3px"></i> Download ticket</button>
+          <button class="btn-secondary btn-zalo" id="zaloBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Send via Zalo</button>
+          <button class="btn-secondary btn-wa" id="waBtn"><i data-lucide="share-2" style="width:16px;height:16px;vertical-align:-3px"></i> Send via WhatsApp</button>
+        </div>
         </div>
       </div>
     </section>
@@ -781,19 +850,19 @@
     const CONFIG = {
       tenNam: "Vũ Hiếu",
       tenNu: "Hồng Tâm",
-      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=220&h=220&fit=crop",
+      avatarUrl: "images/avatar.jpg",
       zaloPhone: "84901234567",
       waPhone: "84901234567",
-      loiNhanAnh: "Đừng quên ăn mặc thật xinh đẹp nhé baby!"
+      loiNhanAnh: "Don't forget to dress up beautifully, baby!"
     };
 
     const ACTIVITIES = [
       { icon: "cup-soda", label: "Mixue" },
-      { icon: "clapperboard", label: "Xem phim" },
-      { icon: "footprints", label: "Đi dạo" },
+      { icon: "clapperboard", label: "Watch a movie" },
+      { icon: "footprints", label: "Go for a walk" },
       { icon: "gamepad-2", label: "Timezone" },
-      { icon: "shopping-bag", label: "Mua sắm" },
-      { icon: "coffee", label: "Cà phê" },
+      { icon: "shopping-bag", label: "Shopping" },
+      { icon: "coffee", label: "Coffee" },
       { icon: "palette", label: "Painting" },
       { icon: "camera", label: "Photobooth" }
     ];
@@ -832,7 +901,7 @@
       `from ${CONFIG.tenNam}`;
     document.getElementById("tHisMsg").textContent = CONFIG.loiNhanAnh;
     document.getElementById("messageTitle").textContent =
-      `Em có lời nhắn gì cho ${CONFIG.tenNam} không?`;
+      `Any message for ${CONFIG.tenNam}?`;
 
     const avatarEl = document.getElementById("avatarEl");
     if (CONFIG.avatarUrl) {
@@ -891,6 +960,14 @@
       if (typeof lucide !== "undefined") lucide.createIcons();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    document.querySelectorAll(".step-back").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (state.step <= 0) return;
+        if (state.step === 1) introOpened = false;
+        goToStep(state.step - 1);
+      });
+    });
 
     /* ── Heart burst canvas ── */
     const canvas = document.getElementById("burstCanvas");
@@ -979,22 +1056,6 @@
     heartBtn.addEventListener("click", (e) => { e.stopPropagation(); openIntro(); });
     envelopeWrap.addEventListener("click", openIntro);
 
-    /* ── Step 1: No dodge ── */
-    const noBtn = document.getElementById("noBtn");
-    const btnArea = document.getElementById("btnArea");
-
-    function dodgeNo() {
-      const area = btnArea.getBoundingClientRect();
-      const btn = noBtn.getBoundingClientRect();
-      const maxX = area.width - btn.width - 4;
-      const maxY = area.height - btn.height - 4;
-      noBtn.style.left = Math.max(0, Math.random() * maxX) + "px";
-      noBtn.style.top = Math.max(0, Math.random() * maxY) + "px";
-    }
-
-    noBtn.addEventListener("mouseenter", dodgeNo);
-    noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); dodgeNo(); }, { passive: false });
-
     document.getElementById("yesBtn").addEventListener("click", () => goToStep(2));
 
     /* ── Step 2 ── */
@@ -1006,8 +1067,8 @@
     document.getElementById("step2Next").addEventListener("click", () => {
       state.date = document.getElementById("dateInput").value;
       state.time = document.getElementById("timeInput").value;
-      if (!state.date) { alert("Em chọn ngày nhé! 📅"); return; }
-      if (!state.session) { alert("Em chọn buổi nhé! ☀️"); return; }
+      if (!state.date) { alert("Please pick a date! 📅"); return; }
+      if (!state.session) { alert("Please pick a time of day! ☀️"); return; }
       goToStep(3);
     });
 
@@ -1015,7 +1076,7 @@
     document.getElementById("step3Next").addEventListener("click", () => {
       state.customActivity = document.getElementById("customActivity").value.trim();
       if (state.customActivity) state.activities.push(state.customActivity);
-      if (state.activities.length === 0) { alert("Chọn ít nhất một hoạt động nhé! 🎉"); return; }
+      if (state.activities.length === 0) { alert("Pick at least one activity! 🎉"); return; }
       goToStep(4);
     });
 
@@ -1023,7 +1084,7 @@
     document.getElementById("step4Next").addEventListener("click", () => {
       state.customDress = document.getElementById("customDress").value.trim();
       if (state.customDress) state.dress = state.customDress;
-      if (!state.dress) { alert("Chọn dress code nhé! 👗"); return; }
+      if (!state.dress) { alert("Please pick a dress code! 👗"); return; }
       goToStep(5);
     });
 
@@ -1039,9 +1100,9 @@
     function formatDate(iso) {
       if (!iso) return "";
       const d = new Date(iso + "T12:00:00");
-      const days = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
-      const months = ["tháng 1", "tháng 2", "tháng 3", "tháng 4", "tháng 5", "tháng 6",
-        "tháng 7", "tháng 8", "tháng 9", "tháng 10", "tháng 11", "tháng 12"];
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
       return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
     }
 
@@ -1051,19 +1112,19 @@
         `${formatDate(state.date)} · ${state.session} · ${state.time}`;
       document.getElementById("tActivities").textContent = state.activities.join(", ");
       document.getElementById("tDress").textContent = state.dress;
-      document.getElementById("tHerMsg").textContent = state.message || "(Không có lời nhắn)";
+      document.getElementById("tHerMsg").textContent = state.message || "(No message)";
     }
 
     function buildShareText() {
       return [
         `💌 DATE INVITATION`,
         ``,
-        `Dành cho: ${CONFIG.tenNu}`,
-        `Thời gian: ${formatDate(state.date)} · ${state.session} · ${state.time}`,
-        `Hoạt động: ${state.activities.join(", ")}`,
+        `For: ${CONFIG.tenNu}`,
+        `When: ${formatDate(state.date)} · ${state.session} · ${state.time}`,
+        `Activities: ${state.activities.join(", ")}`,
         `Dress code: ${state.dress}`,
-        `Lời nhắn từ em: ${state.message || "(Không có)"}`,
-        `Lời nhắn từ anh: ${CONFIG.loiNhanAnh}`,
+        `Message from her: ${state.message || "(None)"}`,
+        `Message from him: ${CONFIG.loiNhanAnh}`,
         ``,
         `— ${CONFIG.tenNam} 💕`
       ].join("\n");
@@ -1108,7 +1169,7 @@
       const ticket = document.getElementById("ticketEl");
       const btn = document.getElementById("downloadBtn");
       btn.disabled = true;
-      btn.textContent = "Đang tạo ảnh...";
+      btn.textContent = "Creating image...";
 
       try {
         const shot = await html2canvas(ticket, {
@@ -1121,11 +1182,12 @@
         link.href = shot.toDataURL("image/png");
         link.click();
       } catch {
-        alert("Không tải được vé, thử lại nhé!");
+        alert("Couldn't download the ticket, please try again!");
       }
 
       btn.disabled = false;
-      btn.textContent = "📥 Tải vé về máy";
+      btn.innerHTML = '<i data-lucide="download" style="width:16px;height:16px;vertical-align:-3px"></i> Download ticket';
+      if (typeof lucide !== "undefined") lucide.createIcons();
     });
 
     /* ── Share ── */
@@ -1143,4 +1205,3 @@
   </script>
 </body>
 </html>
-git init
